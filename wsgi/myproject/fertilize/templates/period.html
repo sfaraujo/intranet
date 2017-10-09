@@ -1,0 +1,254 @@
+{% extends "index.html" %}
+{% load static %}
+{% load humanize %}
+{% load extra_tags %}
+{% block content %}
+{% include "page_menu.html" %}
+<div class="row">
+    <div class="x_panel">
+    <div id="estimate" class="col-md-12 table-responsive">
+        <h4>Quantidades</h4>
+        <table id='estimateQty' class="table table-condensed table-hover">
+            <thead>
+                <tr>
+                    <th></th>
+                    <th class="diff">Azoto Amoniacal (NO3)</th>
+                    <th class="diff">Azoto Nítrico (NH4)</th>
+                    <th class="diff">Fósforo (P)</th>
+                    <th class="diff">Potássio (K)</th>
+                    <th class="diff">Cálcio (Ca)</th>
+                    <th class="diff">Magnésio (Mg)</th>
+                    <th class="diff">Enxofre (SsO4)</th>
+                    <th class="diff">Boro (b)</th>
+                    <th class="diff">Cobre (cu)</th>
+                    <th class="diff">Ferro (f)</th>
+                    <th class="diff">Manganês (mn)</th>
+                    <th class="diff">Molibdeno (mo)</th>
+                    <th class="diff">Zinco (zn)</th>
+                    <th class="currency">Custo</th>
+                </tr>
+            </thead>
+            <tbody>
+                <tr>
+                    <td>Necessidade</td>
+                    <td>{{fieldNeed.nno3}}</td>
+                    <td>{{fieldNeed.nnh4}}</td>
+                    <td>{{fieldNeed.p}}</td>
+                    <td>{{fieldNeed.k}}</td>
+                    <td>{{fieldNeed.ca}}</td>
+                    <td>{{fieldNeed.mg}}</td>
+                    <td>{{fieldNeed.sso4}}</td>
+                    <td>{{fieldNeed.b}}</td>
+                    <td>{{fieldNeed.cu}}</td>
+                    <td>{{fieldNeed.fe}}</td>
+                    <td>{{fieldNeed.mn}}</td>
+                    <td>{{fieldNeed.mo}}</td>
+                    <td>{{fieldNeed.zn}}</td>
+                    <th></th>
+                </tr>
+                <tr>
+                    <td>Previsão</td>
+                  <td>{{fieldProductSum.nno3}}</td>
+                  <td>{{fieldProductSum.nnh4}}</td>
+                  <td>{{fieldProductSum.p}}</td>
+                  <td>{{fieldProductSum.k}}</td>
+                  <td>{{fieldProductSum.ca}}</td>
+                  <td>{{fieldProductSum.mg}}</td>
+                  <td>{{fieldProductSum.sso4}}</td>
+                  <td>{{fieldProductSum.b}}</td>
+                  <td>{{fieldProductSum.cu}}</td>
+                  <td>{{fieldProductSum.fe}}</td>
+                  <td>{{fieldProductSum.mn}}</td>
+                  <td>{{fieldProductSum.mo}}</td>
+                  <td>{{fieldProductSum.zn}}</td>
+                  <th>{{fieldProductSum.total_price}}</th>
+                </tr>
+            </tbody>
+            <tfoot>
+                <tr class="info">
+                    <th>DIFERENÇA </th>
+                    <th></th>
+                    <th></th>
+                    <th></th>
+                    <th></th>
+                    <th></th>
+                    <th></th>
+                    <th></th>
+                    <th></th>
+                    <th></th>
+                    <th></th>
+                    <th></th>
+                    <th></th>
+                    <th></th>
+                    <th></th>
+                </tr>
+            </tfoot>
+        </table>
+    </div>
+    </div>
+</div>
+<div class="row">
+    <div class="x_panel">
+    <div class="col-md-12 col-sm-12 col-xs-12">
+        <h4>Produtos a utilizar no Período</h4>
+        <form action="{% url "period" culture_id=culture.pk period_id=period.pk year=year %}" method="post">
+            {% csrf_token %}
+            <div class="form-group">
+                <div class="col-md-4 col-sm-4 col-xs-12">
+                    <select name="product" class="select2_single form-control select2-hidden-accessible" tabindex="-1" aria-hidden="true">
+                        <option></option>
+                        {%for product in products%}
+                            <option value="{{product.pk}}">{{product.name}}</option>
+                        {%endfor%}
+                    </select>
+                </div>
+                <div class="col-md-3 col-sm-3 col-xs-12">
+                    <input class="form-control" placeholder="Quantidade" type="text" name="qt"/>
+                </div>
+                <div class="col-md-1 col-sm-1 col-xs-12">
+                    <button type="submit" class="btn btn-success pull-right">Gravar</button>
+                </div>
+            </div>
+        </form>
+    </div>
+    </div>
+</div>
+<div class="row">
+    <div class="x_panel">
+        <table class="table table-condensed table-hover">
+            <thead>
+                <tr>
+                    <th>Produto</th>
+                    <th>Quantidade Para Aplicar</th>
+                    <th>Preço por Kg</th>
+                    <th>Custo Total</th>
+                    <th>Ações</th>
+                </tr>
+            </thead>
+            <tbody>
+                    {%for fnproduct in period|getfieldNeedProducts:period.pk%}
+                    
+                    <tr>
+                        <td>{{fnproduct.product.name}}</td>
+                        <td class="col-md-2">
+                            <form id="updateProductQt-{{fnproduct.pk}}" method="post">
+                                {% csrf_token %}
+                                <div class="input-group">
+                                    <input type="hidden" name="product" value="{{fnproduct.product.pk}}">
+                                    <input type="text" name="qt" class="form-control" value="{{fnproduct.qt|floatformat:"1"|intcomma}}" placeholder="{{fnproduct.qt|floatformat:"1"|intcomma}} Kg">
+                                    <span class="input-group-btn">
+                                        <button class="btn btn-primary" id="update_button-{{fnproduct.pk}}">Atualizar</button>
+                                    </span>
+                                </div>
+                            </form>
+                        </td>
+                        
+                        <td>{{fnproduct.product.price_per_kilo|floatformat:"2"|intcomma}} €/kg</td>
+                        <td><div  id="price-{{fnproduct.pk}}">{{fnproduct.price|floatformat:"2"|intcomma}} €</div></td>
+                        <td><a href="javascript:deleteFieldNeedProduct({{fnproduct.pk}})" class="btn btn-danger">Apagar</button></td>
+                        
+                    </tr>
+                    
+                    <script>
+                        $("#update_button-{{fnproduct.pk}}").click(function() {
+                            $.ajax({
+                                type: "POST",
+                                url: "{% url 'period' culture_id=culture.pk period_id=period.pk year=year %}",
+                                data: $('#updateProductQt-{{fnproduct.pk}}').serialize(),
+                                beforeSend:function(data){
+                                    $( "#price-{{fnproduct.pk}}" ).html('<i class="fa fa-spinner fa-spin fa-3x fa-fw"></i>');
+                                    $( "#update_button-{{fnproduct.pk}}" ).html('<i class="fa fa-spinner fa-spin fa-1x fa-fw"></i> Aguarde');
+                                    
+                                    //$( "#estimate" ).html('<center><i class="fa fa-spinner fa-spin fa-3x fa-fw"></i></center');
+                                },
+                                success: function(){
+                                    $( "#price-{{fnproduct.pk}}" ).load( "{% url 'period' culture_id=culture.pk period_id=period.pk year=year %} #price-{{fnproduct.pk}}" );
+                                    location.reload();
+                                }
+                            });
+                            return false;
+                        });
+                        function deleteFieldNeedProduct(value) {
+                            var id = value;
+                            $.ajax({
+                                type: "GET",
+                                url: "{% url 'deleteFieldNeedProduct'%}?id="+id,
+                                data: {
+                                    'id': id,
+                                    'csrfmiddlewaretoken': '{{ csrf_token }}',
+                                },
+                                success: function(response){
+                                    location.reload();
+                                }
+                            });
+                            return false;
+                        }
+                    </script>
+                    {%endfor%}
+            </tbody>
+        </table>
+        </div>
+    </div>
+{% block page_scripts %}
+<script>
+    
+    
+      $(document).ready(function() {
+        $(".select2_single").select2({
+          placeholder: "Escolher produto",
+          allowClear: true
+        });
+      });
+    </script>
+    <script type="text/javascript" language="javascript" class="init">
+        $(document).ready(function (){
+            var $table = $('#estimateQty').dataTable( {
+                "paging": false,
+                "searching": false,
+                "retrieve": true,
+                "info": false,
+                "responsive": true,
+                 
+                'initComplete': function (settings, json){
+                this.api().columns('.diff').every(function(){
+                    var column = this;
+                    var diff = column
+                        .data()
+                        .reduce(function (a, b) { 
+                           a = parseFloat(a, 10);
+                           if(isNaN(a)){ a = 0; }
+                           b = parseFloat(b, 10);
+                           if(isNaN(b)){ b = 0; }
+                           if (a-b > 0){
+                               res='<label style="font-size:100%" class="label label-danger">- '+(a-b).toFixed(2)+' Kg</label>';
+                            }
+                           else if (a-b == 0){
+                               res='<label style="font-size:100%" class="label label-primary">'+(a-b).toFixed(2)+' Kg</label>';
+                            }
+                           else {
+                               res='<label style="font-size:100%" class="label label-success">+ '+(b-a).toFixed(2)+' Kg</label>';
+                           }
+                           return res;
+                        });
+                    $(column.footer()).html(diff);
+                });
+                this.api().columns('.currency').every(function(){
+                    var column = this;
+                    var sum = column
+                        .data()
+                        .reduce(function (a, b) { 
+                           a = parseFloat(a, 10);
+                           if(isNaN(a)){ a = 0; }
+                           b = parseFloat(b, 10);
+                           if(isNaN(b)){ b = 0; }
+                           return a + b;
+                        });
+                    $(column.footer()).html(sum + ' €');
+                });
+            }
+            });
+
+});
+    </script>
+{% endblock %}
+{% endblock %}

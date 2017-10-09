@@ -1,0 +1,57 @@
+{% extends "index.html" %}
+{% load static %}
+{% load humanize %}
+{% load extra_tags %}
+{% block head_scripts %}
+
+{% endblock %}
+{% block content %}
+<div class="row">
+    <div class="x_panel">
+        <div class="col-md-12 table-responsive">
+            <h4>Lista de Tarefas</h4>
+            
+            <table id='taskslist' class="table table-condensed table-hover">
+                <thead>
+                    <tr>
+                        <th>Tarefa</th>
+                        <th>Local</th>
+                        <th>Categoria</th>
+                        <th>Data de Início</th>
+                        <th>Data de Fim</th>
+                        <th>Caderno de Campo</th>
+                    </tr>
+                </thead>
+            </table>
+        </div>
+    </div>
+</div>
+{% endblock %}
+{% block page_scripts %}
+      
+            
+<script type="text/javascript" language="javascript" class="init">
+    $(document).ready(function (){
+        $('#taskslist').DataTable( {
+            "paging": false,
+            "searching": false,
+            "retrieve": true,
+            "info": false,
+            "responsive": true,
+             "ajax": {
+                 "url": "{% url 'getTasks'%}",
+                 "dataSrc": ""
+             },
+             "columns": [
+                 { "data": "fields.name"},
+                 { "data": "fields.location"},
+                 { "data": "fields.category"},
+                 { "data": "fields.start_date"},
+                 { "data": "fields.end_date"},
+                 { "data": "fields.field_book"}
+            ]
+        })
+    });
+</script>
+
+{% endblock %}

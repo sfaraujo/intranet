@@ -1,0 +1,331 @@
+{% extends "index.html" %}
+{% load static %}
+{% load humanize %}
+{% load extra_tags %}
+{% block content %}
+{% include "page_menu.html" %}
+<style>
+.media:first-child {
+    margin-top: 15px;
+}
+</style>
+<div class="row">
+    <div class="x_panel">
+        <div class="x_title">
+            <h2>Quantidades totais por produto</h2>
+            <div class="clearfix"></div>
+        </div>
+        <div class="x_content">
+            <table class="table table-bordered">
+              <thead>
+                <tr>
+                    <th>Produto</th>
+                    <th>Quantidade Total</th>
+                    <th>Quantidade Aplicada</th>
+                    <th>Quantidade por aplicar</th>
+                </tr>
+              </thead>
+              <tbody>
+                  {%for fieldNeedProduct in fieldNeedProducts%}
+                    <tr>
+                        <td>{{fieldNeedProduct.product.name}}</td>
+                        <td><label style="font-size:100%" class="label label-info">{{fieldNeedProduct.qt|floatformat:"1"|intcomma}} Kg</label></td>
+                        <td><label style="font-size:100%" class="label {%if fieldNeedProduct.qtAppliedSum < 0 %}label-danger{%endif%}{%if fieldNeedProduct.qtAppliedSum > 0 %}label-success{%else%} label-default{%endif%}">{{fieldNeedProduct.qtAppliedSum|floatformat:"1"|intcomma}} Kg</label></td>
+                        <td><label style="font-size:100%" class="label {%if fieldNeedProduct.qtAppliedSum|subtract:fieldNeedProduct.qt < 0 %}label-danger{%endif%}{%if fieldNeedProduct.qtAppliedSum|subtract:fieldNeedProduct.qt > 0 %}label-success{%else%} label-default{%endif%}">{{fieldNeedProduct.qtAppliedSum|subtract:fieldNeedProduct.qt|floatformat:"1"|intcomma}}Kg</label></td>
+                    </tr>
+                  {%endfor%}
+              </tbody>
+            </table>
+        </div>
+    </div>
+</div>
+<div class="row">
+    <div class="x_panel">
+    <ul class="">
+    {%for date in dates %}
+        {%with period|getdayPortion:date as dayPortion%}
+      <li class="dayFertilize btn media" data-toggle="modal" data-target=".dayPortion{{date|date:'d-m-Y'}}-modal-lg">
+        <a times="{{dayPortion.fertilizationTimes|default_if_none:"0"}}" class="pull-left date" {%if dayPortion%} data-toggle="tooltip" data-placement="top" title="" data-original-title="EC: {{dayPortion.ecIrrigation}} - {{dayPortion.fertilizationTimes|default_if_none:"0"}} Vezes"{%endif%} {%if dayPortion%}{% if dayPortion.state == True %}style="background:#29af58"{%else%}style="background:#59a3f7"{%endif%}{%endif%}>
+            <p class="month">{{date|date:'D'}}</p>
+            <p class="day">{{date|date:'d'}}</p>
+            <p class="month">{{date|date:'F'}}</p>
+        </a>
+        
+      </li>
+        <div class="modal fade dayPortion{{date|date:'d-m-Y'}}-modal-lg" tabindex="-1" role="dialog" aria-hidden="true">
+            <div class="modal-dialog modal-lg">
+                <div class="modal-content">
+                    <div class="modal-header">
+                        <button type="button" class="close" data-dismiss="modal" aria-label="Close"><span aria-hidden="true">×</span></button>
+                        <h4 class="modal-title" id="myModalLabel2">{{date|date:'l - d F'}}</h4>
+                    </div>
+                    
+                    {%if dayPortion%}
+                    <div class="modal-body">
+                        <div class="row">
+                            <div class="x_panel">
+                                <div class="x_title">
+                                    <h2>Quantidades totais por produto</h2>
+                                    <div class="clearfix"></div>
+                                </div>
+                                <div class="x_content">
+                                    <table id="fieldNeedProducts{{dayPortion.pk}}" class="table table-bordered">
+                                      <thead>
+                                        <tr>
+                                            <th>Produto</th>
+                                            <th>Quantidade Total</th>
+                                            <th>Quantidade Aplicada</th>
+                                            <th>Quantidade por aplicar</th>
+                                        </tr>
+                                      </thead>
+                                      <tbody>
+                                          {%for fieldNeedProduct in fieldNeedProducts%}
+                                            <tr>
+                                                <td>{{fieldNeedProduct.product.name}}</td>
+                                                <td><label style="font-size:100%" class="label label-info">{{fieldNeedProduct.qt|floatformat:"1"|intcomma}} Kg</label></td>
+                                                <td><label style="font-size:100%" class="label {%if fieldNeedProduct.qtAppliedSum < 0 %}label-danger{%endif%}{%if fieldNeedProduct.qtAppliedSum > 0 %}label-success{%else%} label-default{%endif%}">{{fieldNeedProduct.qtAppliedSum|floatformat:"1"|intcomma}} Kg</label></td>
+                                                <td><label style="font-size:100%" class="label {%if fieldNeedProduct.qtAppliedSum|subtract:fieldNeedProduct.qt < 0 %}label-danger{%endif%}{%if fieldNeedProduct.qtAppliedSum|subtract:fieldNeedProduct.qt > 0 %}label-success{%else%} label-default{%endif%}">{{fieldNeedProduct.qtAppliedSum|subtract:fieldNeedProduct.qt|floatformat:"1"|intcomma}}Kg</label></td>
+                                            </tr>
+                                          {%endfor%}
+                                      </tbody>
+                                    </table>
+                                </div>
+                            </div>
+                        </div>
+
+                        {%with dayPortion|getdayPortionProducts as dayPortionProducts%}
+                        <div id="DayPortionProducts{{date|date:'d-m-Y'}}" class="col-md-12">
+                            <h5>Produtos para aplicar</h5>
+                            {%for dayPortionProduct in dayPortionProducts %}
+                                <span class="tag"><span>{{dayPortionProduct.product.name}} - {{dayPortionProduct.qt|floatformat:"1"|intcomma}} Kg &nbsp;&nbsp;</span><a href="javascript:deleteProduct('{{dayPortionProduct.pk}}','{{dayPortionProduct.product.pk}}')" title="Apagar Produto"><i class="fa fa-trash"></i></a></span>
+                            {%endfor%}
+                        </div>
+                        {%endwith%}
+                        
+                        <div class="col-md-12">
+                            <form name="addDayPortionProduct{{date|date:'d-m-Y'}}" method="post">
+                                {% csrf_token %}
+                                <div class="col-md-3 col-sm-3 col-xs-12">
+                                    <input name="dayPortion" value="{{dayPortion.pk}}" type="hidden">
+                                    <select id="product{{date|date:'d-m-Y'}}" name="product" class="select2_single select2-hidden-accessible" tabindex="-1" aria-hidden="true">
+                                        <option></option>
+                                        {%for product in fieldNeedProducts%}
+                                            <option value="{{product.product.pk}}">{{product.product.name}}</option>
+                                        {%endfor%}
+                                    </select>
+                                </div>
+                                <div class="col-md-3 col-sm-3 col-xs-12">
+                                    <input class="form-control" id="qt{{date|date:'d-m-Y'}}" placeholder="Quantidade" type="text" name="qt"/>
+                                </div>
+                                <div class="col-md-3 col-sm-3 col-xs-12">
+                                    <button id="addDayPortionProductButton{{date|date:'d-m-Y'}}" type="button" class="btn btn-info">Adicionar Produto</button>
+                                </div>
+                                <script>
+                            $("#addDayPortionProductButton{{date|date:'d-m-Y'}}").click(function() {
+                                $.ajax({
+                                    type: "POST",
+                                    url: "{% url 'addDayPortionProduct' culture_id=culture.pk period_id=period.pk %}",
+                                    data: {
+                                            'dayPortion': '{{dayPortion.pk}}',
+                                            'product': $('#product{{date|date:"d-m-Y"}}').val(),
+                                            'qt': $('#qt{{date|date:"d-m-Y"}}').val(),
+                                            'date': "{{date|date:'Y-m-d'}}",
+                                            'csrfmiddlewaretoken': '{{ csrf_token }}',
+                                        },
+                                    success: function(){
+                                        $( "#DayPortionProducts{{date|date:'d-m-Y'}}" ).load( "{% url 'calendar' culture_id=culture.pk period_id=period.pk year=period.year %} #DayPortionProducts{{date|date:'d-m-Y'}}" );
+                                        $( "#fieldNeedProducts{{dayPortion.pk}}" ).load( "{% url 'calendar' culture_id=culture.pk period_id=period.pk year=period.year %} #fieldNeedProducts{{dayPortion.pk}}" );
+                                        
+                                        //$(".dayPortion{{date|date:'d-m-Y'}}-modal-lg").modal('show');
+                                    }
+                                });
+                                return false;
+                            });
+                            function deleteProduct(id, productid){
+                                $.ajax({
+                                    type: "get",
+                                    url: "{% url 'deleteproduct' %}",
+                                    data: {
+                                        'id': id,
+                                        'productid': productid,
+                                        'csrfmiddlewaretoken': '{{ csrf_token }}',
+                                    },
+                                    success: function(response){
+                                        $( "#DayPortionProducts{{date|date:'d-m-Y'}}" ).load( "{% url 'calendar' culture_id=culture.pk period_id=period.pk year=period.year %} #DayPortionProducts{{date|date:'d-m-Y'}}" );
+                                        $( "#fieldNeedProducts{{dayPortion.pk}}" ).load( "{% url 'calendar' culture_id=culture.pk period_id=period.pk year=period.year %} #fieldNeedProducts{{dayPortion.pk}}" );
+                                    }
+                                });
+                                return false;
+                            }
+                            
+                        </script>
+                            </form>
+                            
+                        </div>
+                        <div class="clearfix"></div>
+                        <div class="ln_solid"></div>
+                        <h6>Detalhes para preparação da solução nutritiva</h6>
+                        
+                        <form id="updateDayPortionDetails{{date|date:'d-m-Y'}}" method="post">
+                            {% csrf_token %}
+                            
+                            <div id="dayPortionDetails{{date|date:'d-m-Y'}}" class="col-md-12">
+                                <input type="hidden" name="date"  value="{{dayPortion.date|date:'Y-m-d'}}">
+                                <div class="form-group col-md-6 col-sm-6 col-xs-6">
+                                    <label class="control-label col-md-6 col-sm-6-col-xs-6">Água no Depósito:</label>
+                                    <input type="text" class="form-control" name="depositWaterUsed"  value="{{dayPortion.depositWaterUsed}}">
+                                </div>
+                                <div class="form-group col-md-6 col-sm-6 col-xs-6">
+                                    <label class="control-label col-md-6 col-sm-6-col-xs-6">Água de Rega Utilizada:</label>
+                                    <input type="text" class="form-control" name="waterUsed" readonly="true" value="{{dayPortion.waterUsed}}">
+                                </div>
+                                <div class="form-group col-md-4 col-sm-4 col-xs-4">
+                                    <label class="control-label col-md-12 col-sm-12-col-xs-12">Percentagem de Fertilização:</label>
+                                    <input type="text" class="form-control" name="percentageFertilizer" value="{{dayPortion.percentageFertilizer}}">
+                                </div>
+                                <div class="form-group col-md-4 col-sm-4 col-xs-4">
+                                    <label class="control-label col-md-12 col-sm-12-col-xs-12">Fertilização por Hora:</label>
+                                    <input type="text" class="form-control" name="fertilizerPerHour" value="{{dayPortion.fertilizerPerHour|floatformat:"0"}}">
+                                </div>
+                                <div class="form-group col-md-4 col-sm-4 col-xs-4">
+                                    <label class="control-label col-md-12 col-sm-12-col-xs-12">Fertilização utilizada por rega:</label>
+                                    <input type="text" class="form-control" readonly="true" name="fertilizer" value="{{dayPortion.fertilizer|floatformat:"0"}}">
+                                </div>
+                                <div class="form-group col-md-6 col-sm-6 col-xs-6">
+                                    <label class="control-label col-md-6 col-sm-6-col-xs-6">Tempo de Irrigação:</label>
+                                    <input type="text" class="form-control" name="timeIrrigation" value="{{dayPortion.timeIrrigation|floatformat:"0"}}">
+                                </div>
+                                <div class="form-group col-md-6 col-sm-6 col-xs-6">
+                                    <label class="control-label col-md-6 col-sm-6-col-xs-6">EC - Conditividade Elétrica:</label>
+                                    <input type="text" class="form-control" name="ecIrrigation" readonly="true" value="{{dayPortion.ecIrrigation|floatformat:"2"}}">
+                                </div>
+                                <div class="col-md-12 col-sm-12 col-xs-12">
+                                    <div class="form-group col-md-10 col-sm-10 col-xs-10">
+                                    <h2>Com a seguinte configuração é possível fertilizar <label style="font-size:100%;" class="label label-info">{{dayPortion.fertilizationTimes|default_if_none:"0"}} Vezes</label></h2>
+                                    </div>
+                                    <div class="form-group col-md-2 col-sm-2 col-xs-2">
+                                        <select id="state{{date|date:'d-m-Y'}}" name="state" class="form-control" tabindex="-1">
+                                                {%for state in states%}
+                                                    <option value="{{state.pk}}" {%if dayPortion.state.pk == state.pk %}selected="true"{%endif%}>{{state.name}}</option>
+                                                {%endfor%}
+                                        </select>
+                                        
+                                    </div>
+                                </div>
+                            </div>
+                            <div class="form-group col-md-12 col-sm-12 col-xs-12">
+                                    <button id="dayPortionDetailsButton{{date|date:'d-m-Y'}}" type="button" class="btn-block btn btn-primary">Guardar</button>
+                                </div>
+                        </form>
+                    </div>
+                    <div class="clearfix"></div>
+                    <div class="modal-footer">
+                        <button id="deleteDayPortionButton{{date|date:'d-m-Y'}}" type="button" class="btn btn-danger">Apagar</button>
+                        
+                        <button type="button" class="btn btn-default" data-dismiss="modal">Fechar</button>
+                        <script>
+                            $("#dayPortionDetailsButton{{date|date:'d-m-Y'}}").click(function() {
+                                $.ajax({
+                                    type: "POST",
+                                    url: "{% url 'updateDayPortion' culture_id=culture.pk period_id=period.pk %}",
+                                    data: $('#updateDayPortionDetails{{date|date:"d-m-Y"}}').serialize(),
+                                    beforeSend:function(){
+                                        $( "#dayPortionDetailsButton{{date|date:'d-m-Y'}}" ).html('<i class="fa fa-spinner fa-spin fa-fw"></i> Aguarde');
+                                    },
+                                    success: function(data){
+                                        $( "#dayPortionDetails{{date|date:'d-m-Y'}}" ).load( "{% url 'calendar' culture_id=culture.pk period_id=period.pk year=period.year %} #dayPortionDetails{{date|date:'d-m-Y'}}" );
+                                        $( "#dayPortionDetailsButton{{date|date:'d-m-Y'}}" ).html('Gravar');
+                                        
+                                        
+                                    }
+                                });
+                                return false;
+                            });
+                            
+                            $("#deleteDayPortionButton{{date|date:'d-m-Y'}}").click(function() {
+                                if (confirm('Tem a certeza que pretende apagar este dia de nutrição?')) {
+                                    $.ajax({
+                                        type: "POST",
+                                        url: "{% url 'deleteDayPortion' culture_id=culture.pk period_id=period.pk %}",
+                                        data: {
+                                            'id': {{dayPortion.pk}},
+                                            'csrfmiddlewaretoken': '{{ csrf_token }}',
+                                        },
+                                        success: function(response){
+                                            location.reload();
+                                        }
+                                    });
+                                }
+                            });
+                            
+                        </script>
+                    </div>
+                    {%else%}
+                    <div class="modal-body">
+                        <h2>Pretende iniciar uma solução nutritiva neste dia?</h2>
+                        <form id="createDayPortion{{date|date:'d-m-Y'}}" method="post">
+                            {% csrf_token %}
+                            <input type="hidden" name="period" value="{{period.pk}}">
+                            <input type="hidden" name="date" value="{{date|date:'Y-m-d'}}">
+                            <button id="createDayPortionButton{{date|date:'d-m-Y'}}" type="button" class="btn btn-success">Sim</button>
+                            <button type="button" class="btn btn-danger" data-dismiss="modal">Não</button>
+                        </form>
+                        <script>
+                            $("#createDayPortionButton{{date|date:'d-m-Y'}}").click(function() {
+                                $.ajax({
+                                    type: "POST",
+                                    url: "{% url 'createDayPortion' culture_id=culture.pk period_id=period.pk %}",
+                                    data: $("#createDayPortion{{date|date:'d-m-Y'}}").serialize(),
+                                    beforeSend:function(){
+                                        $( "#createDayPortionButton{{date|date:'d-m-Y'}}" ).html('<i class="fa fa-spinner fa-spin fa-fw"></i> Aguarde');
+                                    },
+                                    success: function(response){
+                                        location.reload();
+                                    }
+                                });
+                                return false;
+                            });
+                        </script>
+
+                    </div>
+                    <div class="modal-footer">
+                        <button type="button" class="btn btn-default" data-dismiss="modal">Fechar</button>
+                    </div>
+                    {%endif%}
+                </div>
+            </div>
+        </div>
+      {%endwith%}
+    {%endfor%}
+    </ul>
+    </div>
+</div>
+{% block page_scripts %}
+<script>
+$(document).ready(function() {
+    $('.dayFertilize:first').find('a');
+        var prints = 0;
+        var mylis = $('.dayFertilize');
+        mylis.each(function(){
+        if(prints > 0){
+            $(this).find('a').css({'background-color':'#31708f'});
+            prints--;
+        }
+        
+        myanchor  = $(this).find("a");
+        if(myanchor!= undefined && $(myanchor).attr('times') != undefined && parseInt($(myanchor).attr('times')) > 0){
+            $(this).find('a').css({'background-color':'#5bc0de'});
+            prints += parseInt($(myanchor).attr('times')) - 1 - prints;
+        }
+    })
+    
+
+    $(".select2_single").select2({
+      placeholder: "Escolher produto",
+      allowClear: true
+    });
+
+});
+</script>
+{% endblock %}
+{% endblock %}

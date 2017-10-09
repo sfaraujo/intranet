@@ -1,0 +1,210 @@
+{% extends "index.html" %}
+{% load extra_tags %}
+{% block content %}
+
+{%for location in totalColdHours%}
+<div class="page-title">
+  <div class="title_left">
+    <h3>{{location.0}}</h3>
+  </div>
+</div>
+<div class="clearfix"></div>
+<div class="row">
+    <div class="col-md-6 col-sm-6 col-xs-12">
+        <div class="x_panel">
+            <div id="Temperatures{{forloop.counter}}" style="min-width: 100px; margin: 0 auto"></div>
+        </div>
+    </div>
+    <div class="col-md-6 col-sm-6 col-xs-12">
+        <div class="x_panel">
+            <div id="coldHours{{forloop.counter}}" style="min-width: 100px; margin: 0 auto"></div>
+        </div>
+    </div>
+</div>
+{%endfor%}
+
+
+<div class="row">
+    <div class="col-md-6 col-sm-6 col-xs-12">
+        <div class="x_panel">
+          <div class="x_title">
+            <h2>Horas de Frio - IPMA</h2>
+            <div class="clearfix"></div>
+          </div>
+          <div class="x_content text-center">
+            <img class="img-responsive" alt="Horas de frio acumuladas para fruteiras" src="http://www.ipma.pt/resources.www/transf/agrometeo/dthto_co_agro.jpg">
+          </div>
+        </div>
+    </div>
+    <div class="col-md-6 col-sm-6 col-xs-12">
+        <div class="x_panel">
+          <div class="x_title">
+            <h2>Risco de Incêndio - IPMA</h2>
+            <div class="clearfix"></div>
+          </div>
+          <div class="x_content text-center">
+            <img class="img-responsive" alt="Risco de Incêndio" src="http://www.ipma.pt/resources.www/transf/indices/rcm_dh.jpg">
+          </div>
+        </div>
+    </div>
+
+</div>
+{% endblock %}
+
+{% block page_scripts %}
+
+<script>
+    $(function () {
+    // Create the chart
+    {%for location in totalColdHours%}
+        Highcharts.chart('Temperatures{{forloop.counter}}', {
+            chart: {
+                type: 'columnrange',
+                inverted: false
+            },
+    
+            title: {
+                text: 'Variação de Temperaturas Anuais e Mensais'
+            },
+            subtitle: {
+                text: 'Clicar nas colunas para analisar os dados mensais'
+            },
+            xAxis: {
+                type: 'category'
+            },
+            yAxis: {
+                title: {
+                    text: 'Temperatura ( °C )'
+                }
+            },
+            tooltip: {
+                valueSuffix: '°C'
+            },
+            plotOptions: {
+                columnrange: {
+                    dataLabels: {
+                        enabled: true,
+                        formatter: function () {
+                            return this.y + '°C';
+                        }
+                    }
+                }
+            },
+            legend: {
+                enabled: false
+            },
+            series: [{
+                name: 'Ano',
+                colorByPoint: true,
+                data: [
+                    {%for key in location.1%}
+                                {
+                            name: '{{key.0}}',
+                            low: {{key.1|floatformat:"0"}},
+                            high: {{key.2|floatformat:"0"}},
+                            drilldown: '{{key.0}}'
+                        },
+                    {% endfor %}
+                ]
+            }],
+            drilldown: {
+                series: [
+                    {%for key in location.1%}
+                {
+                    name: '{{key.0}}',
+                    id: '{{key.0}}',
+                    data: [
+                        {%for key1 in location.2%}
+                            {%if key1.0 == key.0 %}
+                                {
+                                name: '{{key1.0}} - {{key1.1}}',
+                                low: {{key1.2|floatformat:"0"}},
+                                high: {{key1.3|floatformat:"0"}}
+                            },
+                            {%endif%}
+                        {% endfor %}
+                    ]
+                },
+                {% endfor %}
+                ]
+            }
+        });
+        
+        
+        Highcharts.chart('coldHours{{forloop.counter}}', {
+            chart: {
+                type: 'column'
+            },
+            title: {
+                text: 'Total de Horas de Frio'
+            },
+            subtitle: {
+                text: 'Clicar nas colunas para analisar os dados mensais'
+            },
+            xAxis: {
+                type: 'category'
+            },
+            yAxis: {
+                title: {
+                    text: 'Total de Horas de Frio (<7ºC)'
+                }
+    
+            },
+            legend: {
+                enabled: false
+            },
+            plotOptions: {
+                series: {
+                    borderWidth: 0,
+                    dataLabels: {
+                        enabled: true,
+                        format: '{point.y:.0f} Horas'
+                    }
+                }
+            },
+    
+            tooltip: {
+                headerFormat: '<span style="font-size:11px">{series.name}</span><br>',
+                pointFormat: '<span style="color:{point.color}">{point.name}</span>: <b>{point.y:.0f}</b> Horas<br/>'
+            },
+    
+            series: [{
+                name: 'Ano',
+                colorByPoint: true,
+                data: [
+                    {%for key, value in location.3.items%}
+                                {
+                            name: '{{key}}',
+                            y: {{value}},
+                            drilldown: '{{key}}'
+                        },
+                    {% endfor %}
+                ]
+            }],
+            drilldown: {
+                series: [
+                    {%for key, value in location.3.items%}
+                {
+                    name: '{{key}}',
+                    id: '{{key}}',
+                    data: [
+                        {%for key1, value1 in location.4.items%}
+                            {%if key|slice:":4" == key1|slice:":4" or key|slice:"-4:" == key1|slice:":4" %}
+                                [
+                                    '{{key1}}',
+                                    {{value1}}
+                                ],
+                            {%endif%}
+                        {% endfor %}
+                    ]
+                },
+                {% endfor %}
+                ]
+            }
+        });
+    {%endfor%}
+});
+        
+        </script>
+
+{% endblock %}

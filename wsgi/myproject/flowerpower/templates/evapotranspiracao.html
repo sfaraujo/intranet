@@ -1,0 +1,449 @@
+{% extends "index.html" %}
+{% load static %}
+{% load humanize %}
+{% block content %}
+
+<div class="col-md-12 col-sm-12 col-xs-12">
+    <div class="x_panel">
+        <div class="x_title">
+            <h2>Evapotranspiração Diária</h2>
+            <div class="clearfix"></div>
+        </div>
+        <div class="x_content">
+            <div id="echart_gauge_et" style="height:250px;"></div>
+        </div>
+    </div>
+</div>
+
+<div class="col-md-12 col-sm-12 col-xs-12">
+    <div class="x_panel">
+      <div class="x_title">
+        <h2>Evapotranspiração</h2>
+        <div class="clearfix"></div>
+      </div>
+      <div class="x_content">
+        <div id="echart_line_Et" style="height:500px;"></div>
+      </div>
+    </div>
+</div>
+{% endblock %}
+
+{% block page_scripts %}
+
+<script>
+          var theme = {
+              color: [
+                    '#c12e34','#e6b600','#2b821d','#0098d9',
+                    '#005eaa','#339ca8','#cda819','#32a487'
+                ],
+              title: {
+                  itemGap: 8,
+                  textStyle: {
+                      fontWeight: 'normal',
+                      color: '#408829'
+                  }
+              },
+        
+              dataRange: {
+                  itemWidth: 15,
+                  color:['#1790cf','#a2d4e6']
+              },
+        
+              toolbox: {
+                  color : ['#06467c','#00613c','#872d2f','#c47630']
+              },
+        
+              tooltip: {
+                  backgroundColor: 'rgba(0,0,0,0.5)',
+                  axisPointer: {
+                      type: 'line',
+                      lineStyle: {
+                          color: '#408829',
+                          type: 'dashed'
+                      },
+                      crossStyle: {
+                          color: '#408829'
+                      },
+                      shadowStyle: {
+                          color: 'rgba(200,200,200,0.3)'
+                      }
+                  }
+              },
+        
+              dataZoom: {
+                  dataBackgroundColor: '#eee',
+                  illerColor: 'rgba(154,217,247,0.2)',
+                  handleColor: '#005eaa'
+              },
+              grid: {
+                  borderWidth: 0
+              },
+        
+              categoryAxis: {
+                  axisLine: {
+                      lineStyle: {
+                          color: '#408829'
+                      }
+                  },
+                  splitLine: {
+                      lineStyle: {
+                          color: ['#eee']
+                      }
+                  }
+              },
+        
+              valueAxis: {
+                  axisLine: {
+                      lineStyle: {
+                          color: '#408829'
+                      }
+                  },
+                  splitArea: {
+                      show: true,
+                      areaStyle: {
+                          color: ['rgba(250,250,250,0.1)', 'rgba(200,200,200,0.1)']
+                      }
+                  },
+                  splitLine: {
+                      lineStyle: {
+                          color: ['#eee']
+                      }
+                  }
+              },
+              timeline: {
+                  lineStyle: {
+                      color: '#408829'
+                  },
+                  controlStyle: {
+                      normal: {color: '#408829'},
+                      emphasis: {color: '#408829'}
+                  }
+              },
+        
+              k: {
+                  itemStyle: {
+                      normal: {
+                          color: '#68a54a',
+                          color0: '#a9cba2',
+                          lineStyle: {
+                              width: 1,
+                              color: '#408829',
+                              color0: '#86b379'
+                          }
+                      }
+                  }
+              },
+              map: {
+                  itemStyle: {
+                      normal: {
+                          areaStyle: {
+                              color: '#ddd'
+                          },
+                          label: {
+                              textStyle: {
+                                  color: '#c12e34'
+                              }
+                          }
+                      },
+                      emphasis: {
+                          areaStyle: {
+                              color: '#99d2dd'
+                          },
+                          label: {
+                              textStyle: {
+                                  color: '#c12e34'
+                              }
+                          }
+                      }
+                  }
+              },
+              force: {
+                  itemStyle: {
+                      normal: {
+                          linkStyle: {
+                              strokeColor: '#408829'
+                          }
+                      }
+                  }
+              },
+              chord: {
+                  padding: 4,
+                  itemStyle: {
+                      normal: {
+                          lineStyle: {
+                              width: 1,
+                              color: 'rgba(128, 128, 128, 0.5)'
+                          },
+                          chordStyle: {
+                              lineStyle: {
+                                  width: 1,
+                                  color: 'rgba(128, 128, 128, 0.5)'
+                              }
+                          }
+                      },
+                      emphasis: {
+                          lineStyle: {
+                              width: 1,
+                              color: 'rgba(128, 128, 128, 0.5)'
+                          },
+                          chordStyle: {
+                              lineStyle: {
+                                  width: 1,
+                                  color: 'rgba(128, 128, 128, 0.5)'
+                              }
+                          }
+                      }
+                  }
+              },
+              gauge: {
+                  startAngle: 225,
+                  endAngle: -45,
+                  axisLine: {
+                      show: true,
+                      lineStyle: {
+                          color: [[0.2, '#86b379'], [0.8, '#68a54a'], [1, '#408829']],
+                          width: 8
+                      }
+                  },
+                  axisTick: {
+                      splitNumber: 10,
+                      length: 12,
+                      lineStyle: {
+                          color: 'auto'
+                      }
+                  },
+                  axisLabel: {
+                      textStyle: {
+                          color: 'auto'
+                      }
+                  },
+                  splitLine: {
+                      length: 18,
+                      lineStyle: {
+                          color: 'auto'
+                      }
+                  },
+                  pointer: {
+                      length: '90%',
+                      color: 'auto'
+                  },
+                  title: {
+                      textStyle: {
+                          color: '#333'
+                      }
+                  },
+                  detail: {
+                      textStyle: {
+                          color: 'auto'
+                      }
+                  }
+              },
+              textStyle: {
+                  fontFamily: 'Arial, Verdana, sans-serif'
+              }
+          };
+
+          var echartGaugeEt = echarts.init(document.getElementById('echart_gauge_et'), theme);
+        
+          echartGaugeEt.setOption({
+            tooltip: {
+              formatter: "{a} <br/>{b} : {c}%"
+            },
+            toolbox: {
+              show: true,
+              feature: {
+                restore: {
+                  show: true,
+                  title: "Restore"
+                },
+                saveAsImage: {
+                  show: true,
+                  title: "Guardar Imagem"
+                }
+              }
+            },
+            series: [{
+              name: 'Et0',
+              type: 'gauge',
+              center: ['50%', '50%'],
+              startAngle: 220,
+              endAngle: -40,
+              min: 0,
+              max: 10,
+              precision: 0,
+              splitNumber: 10,
+              axisLine: {
+                show: true,
+                lineStyle: {
+                  color: [
+                    [0.2, 'blue'],
+                    [0.4, 'yellow'],
+                    [0.8, 'orange'],
+                    [1, '#ff4500']
+                  ],
+                  width: 30
+                }
+              },
+              axisTick: {
+                show: true,
+                splitNumber: 5,
+                length: 8,
+                lineStyle: {
+                  color: '#eee',
+                  width: 1,
+                  type: 'solid'
+                }
+              },
+              axisLabel: {
+                show: true,
+                formatter: function(v) {
+                  switch (v + '') {
+                    case '2':
+                      return '2';
+                    case '4':
+                      return '4';
+                    case '6':
+                      return '6';
+                    case '8':
+                      return '8';
+                    default:
+                      return '';
+                  }
+                },
+                textStyle: {
+                  color: '#333'
+                }
+              },
+              splitLine: {
+                show: true,
+                length: 30,
+                lineStyle: {
+                  color: '#eee',
+                  width: 2,
+                  type: 'solid'
+                }
+              },
+              pointer: {
+                length: '80%',
+                width: 8,
+                color: 'auto'
+              },
+              title: {
+                show: true,
+                offsetCenter: ['0%', 40],
+                textStyle: {
+                  color: '#333',
+                  fontSize: 15
+                }
+              },
+              detail: {
+                show: true,
+                backgroundColor: 'rgba(0,0,0,0)',
+                borderWidth: 0,
+                borderColor: '#ccc',
+                width: 100,
+                height: 40,
+                offsetCenter: ['0%', 60],
+                formatter: '{value}',
+                textStyle: {
+                  color: 'auto',
+                  fontSize: 30
+                }
+              },
+              data: [{
+                value: {{Evapotranspirations.last.value|floatformat:"2"}},
+                name: "{{Evapotranspirations.last.date|date:'D, d-M'}}"
+              }]
+            }]
+          });
+
+          var echartLineEt = echarts.init(document.getElementById('echart_line_Et'), theme);
+        
+          echartLineEt.setOption({
+              
+            title: {
+              text: 'Evapotranspiração',
+              subtext: ''
+            },
+            tooltip: {
+              trigger: 'axis'
+            },
+            legend: {
+              x: 220,
+              y: 40,
+              data: ['ET0']
+            },
+            toolbox: {
+              show: true,
+              feature: {
+                //mark : {show: true},
+                dataZoom : {
+                    show: true,
+                    title: "Zoom"
+                },
+                magicType: {
+                  show: true,
+                  title: {
+                    line: 'Linhas',
+                    bar: 'Barras',
+                    stack: 'Acumulado',
+                    tiled: 'Individual'
+                  },
+                  type: ['line', 'bar', 'stack', 'tiled']
+                },
+                restore: {
+                  show: true,
+                  title: "Restaurar"
+                },
+                saveAsImage: {
+                  show: true,
+                  title: "Guardar Imagem"
+                }
+              }
+            },
+            calculable: true,
+            dataZoom : {
+                show : true,
+                realtime : true,
+                start : 50,
+                end : 100
+            },
+            xAxis: [{
+              type: 'category',
+              boundaryGap: true,
+              data: [{%for evap in Evapotranspirations%}"{{evap.date|date:'d-M H:s'}}",{% endfor %}]
+            }],
+            yAxis: [{
+              type: 'value'
+            }],
+            series: [{
+              name: 'Et0',
+              type: 'line',
+              smooth: true,
+              itemStyle: {
+                normal: {
+                  areaStyle: {
+                    type: 'default'
+                  }
+                }
+              },
+              markPoint: {
+            data: [{
+              type: 'max',
+              name: 'Máximo'
+            }, {
+              type: 'min',
+              name: 'Mínimo'
+            }]
+            },
+            markLine: {
+            data: [{
+              type: 'average',
+              name: 'Média'
+            }]
+            },
+              data: [{%for evap in Evapotranspirations%}{{evap.value}},{% endfor %}]
+            }]
+          });
+</script>
+{% endblock %}

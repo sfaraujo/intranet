@@ -1,0 +1,413 @@
+<!DOCTYPE html>
+{% load static %}
+{% load humanize %}
+{% load extra_tags %}
+<html lang="en">
+    <head>
+        <meta http-equiv="Content-Type" content="text/html; charset=UTF-8">
+        <!-- Meta, title, CSS, favicons, etc. -->
+        <meta charset="utf-8">
+        <meta http-equiv="X-UA-Compatible" content="IE=edge">
+        <meta name="viewport" content="width=device-width, initial-scale=1">
+        
+        <title>Intranet | Vitaminas do Bosque</title>
+        
+        <!-- Bootstrap -->
+        <link href="{% static "css/bootstrap.min.css" %}" rel="stylesheet">
+        <link href="https://cdnjs.cloudflare.com/ajax/libs/bootstrap-validator/0.5.3/css/bootstrapValidator.min.css" rel="stylesheet">
+        <!-- Font Awesome -->
+        <!--<link href="{% static "css/font-awesome.min.css" %}" rel="stylesheet">-->
+        <!-- NProgress -->
+        <link href="{% static "css/nprogress.css" %}" rel="stylesheet">
+        
+        <!-- Custom Theme Style -->
+        <link href="{% static "css/custom.min.css" %}" rel="stylesheet">
+        <link href="{% static "css/select2.min.css" %}" rel="stylesheet">
+        <link href="{% static "css/switchery.min.css" %}" rel="stylesheet">
+        
+        <!-- jQuery -->
+        <script src="{% static "js/jquery.min.js" %}"></script>
+        <!-- Bootstrap -->
+        <script src="{% static "js/bootstrap.min.js" %}"></script>
+        <script src="https://cdnjs.cloudflare.com/ajax/libs/bootstrap-validator/0.5.3/js/bootstrapValidator.min.js"></script>
+        <script src="https://cdnjs.cloudflare.com/ajax/libs/bootstrap-validator/0.5.3/js/language/pt_PT.min.js"></script>
+        <!-- FastClick -->
+        <script src="{% static "js/fastclick.js" %}"></script>
+        <!-- NProgress -->
+        <script src="{% static "js/nprogress.js" %}"></script>
+        <!-- ECharts -->
+        <script src="{% static "js/echarts.min.js" %}"></script>
+        <script src="{% static "js/echarts.min.js" %}"></script>
+        
+        <script src="{% static "js/switchery.min.js" %}"></script>
+        <!-- Custom Theme Scripts -->
+        <script src="{% static "js/custom.min.js" %}"></script>
+        
+        <script src="{% static "js/highcharts/highcharts.js" %}"></script>
+        <script src="{% static "js/highcharts/data.js" %}"></script>
+        <script src="{% static "js/highcharts/drilldown.js" %}"></script>
+        <script src="{% static "js/highcharts/highcharts-more.js" %}"></script>
+        <script src="{% static "js/highcharts/exporting.js" %}"></script>
+        
+        
+        <!-- Datatables -->
+        <script src="{% static "js/jquery.dataTables.min.js" %}"></script>
+        <script src="{% static "js/fnReloadAjax.js" %}"></script>
+        <script src="{% static "js/moment/moment.min.js" %}"></script>
+        <script src="{% static "js/datatables/sum().js" %}"></script>
+        <script src="{% static "js/datatables/datetime.js" %}"></script>
+        <script src="{% static "js/select2.full.min.js" %}"></script>
+        <script src="{% static "js/datepicker/daterangepicker.js" %}"></script>
+        <script src="https://use.fontawesome.com/135f88a65d.js"></script>
+        {% block head_scripts %}
+        
+        {%endblock%}
+    </head>
+
+    <body class="nav-md">
+        <div class="loaderImage" style="text-align:center; width:100%; height:100%; position:absolute; z-index:100; background:rgba(255, 255, 255, 1); display:none"><h1>A importar dados</h1><h2>Aguarde...</h2>
+            <img src="{% static "images/spinner.gif" %}"/>
+        </div>
+        <div class="container body">
+            <div class="main_container">
+                <div class="col-md-3 left_col">
+                    <div class="left_col scroll-view">
+                        <div class="navbar nav_title" style="border: 0;">
+                            <a href="/" class="site_title"><i class="fa fa-tree"></i> <span class="small">Vitaminas do Bosque</span></a>
+                        </div>
+                        <div class="clearfix"></div>
+                        <div class="profile">
+                            <div class="profile_info">
+                                <h2><span class="small">Olá, </span>{{user.first_name}} {{user.last_name}}</h2>
+                            </div>
+                        </div>
+                        <div class="clearfix"></div>
+                        <!-- sidebar menu -->
+                        <div id="sidebar-menu" class="main_menu_side hidden-print main_menu">
+                            <div class="menu_section">
+                                <ul class="nav side-menu">
+                                  <li><a href="/"><i class="fa fa-home"></i> Painel Principal</a></li>
+                                  <li><a href="{% url 'tasks' %}"><i class="fa fa-tasks"></i> Tarefas</a></li>
+                                  <li><a><i class="fa fa-bluetooth"></i> Sensores Parrot <span class="fa fa-chevron-down"></span></a>
+                                    <ul class="nav child_menu">
+                                        {%for sensor in sensors%}
+                                            <li>
+                                            
+                                            <a href="{% url 'sensor' sensor_id=sensor.pk date=7 %}">{{sensor.plantnickname}}{% if request.user.groups.count > 1 %}<br>
+                                            <small>{{sensor.group}}</small>
+                                            {% endif %}</a></li>
+                                        {% endfor %}
+                                    </ul>
+                                  </li>
+                                  <li><a><i class="fa fa-tint"></i> Fertilização <span class="fa fa-chevron-down"></span></a>
+                                    <ul class="nav child_menu">
+                                        {%for culture in cultures%}
+                                            {% now "Y" as current_year %}
+                                            <li class="sub_menu"><a href="{% url 'fertilization' culture_id=culture.pk year=current_year %}">{{culture}}</a></li>
+                                        {% endfor %}
+                                            <li role="sub_menu">
+                                            {% now "Y" as current_year %}
+                                              <a href="{% url 'allFertilizations' culture_id=0 year=current_year %}" class="dropdown-toggle">
+                                                  Mapa de Fertilizações de {{current_year}}
+                                              </a>
+                                            </li>
+                                    </ul>
+                                  </li>
+                                        
+                                  <li><a><i class="fa fa-cloud"></i> Meteorologia <span class="fa fa-chevron-down"></span></a>
+                                    <ul class="nav child_menu">
+                                        <li><a href="{%url 'previsaotempo' %}">Previsão do Tempo</a></li>
+                                        <li><a href="{% url 'evapotranspiracao' %}">Evapotranspiração</a></li>
+                                        <li><a href="{% url 'temperaturas' %}">Temperaturas</a></li>
+                                    </ul>
+                                  </li>
+                                </ul>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+                <!-- top navigation -->
+                <div class="top_nav">
+                    <div class="nav_menu">
+                        <nav>
+                            <div class="nav toggle">
+                                <a id="menu_toggle"><i class="fa fa-bars"></i></a>
+                            </div>
+                            <ul class="nav navbar-nav navbar-right">
+                                <li class="">
+                                  <a href="javascript:;" class="user-profile dropdown-toggle" data-toggle="dropdown" aria-expanded="false">
+                                    {{user.first_name}} {{user.last_name}} ({{user.username}})
+                                    <span class=" fa fa-angle-down"></span>
+                                  </a>
+                                  <ul class="dropdown-menu dropdown-usermenu pull-right">
+                                      <!--<li><a href="{% url 'userGroups' %}"><i class="fa fa-gears pull-right"></i> Grupos</a></li>-->
+                                      <li><a href="{% url 'parrotAccount' %}"><i class="fa fa-bluetooth pull-right"></i> Conta Parrot</a></li>
+                                      <li><a href="{% url 'configSensors' %}"><i class="fa fa-gears pull-right"></i> Sensores</a></li>
+                                      <li><a href="{% url 'cultures' %}"><i class="fa fa-tree pull-right"></i> Culturas e Períodos</a></li>
+                                    <li><a href="{% url 'logout' %}?next={% url 'index' %}"><i class="fa fa-sign-out pull-right"></i> Sair</a></li>
+                                  </ul>
+                                </li>
+                                {%if parrot_auth %}
+                                <li class="">
+                                  <a id="importData" href="javascript:;">
+                                      <span class=" fa fa-2x fa-download"> Importar dados</span> 
+                                  </a>
+                                </li>
+                                {% endif %}
+                            </ul>
+                        </nav>
+                    </div>
+                </div>
+                <!-- /top navigation -->
+                <!-- page content -->
+                
+                <div class="right_col" role="main">
+                {% block content %}
+                <div class="col-xs-12">
+                    <div class="x_panel">
+                        <div class="x_title">
+                            <h2><i class="fa fa-tasks"></i> Próximas Fertilizações</h2>
+                            <div class="clearfix"></div>
+                        </div>
+                        <div class="x_content">
+                            {%for fertilization in nextFertilizations%}
+                            <div class="col-sm-4 col-xs-12">
+                                <article class="media event x_panel">
+                                  <a class="pull-left date">
+                                    <p class="month" style="color:#5A738E;">{{fertilization.date|date:"M"}}</p>
+                                    <p class="day" style="color:#5A738E;">{{fertilization.date|date:"d"}}</p>
+                                  </a>
+                                  <div class="media-body">
+                                    <a class="title" href="#">{{fertilization.period.culture}}</a>
+                                    <p><label>Água no depósito:</label> {{fertilization.depositWaterUsed|floatformat:"0"}} L</p>
+                                    <p><label>Tempo de Irrigação:</label> {{fertilization.timeIrrigation|floatformat:"0"}} Min</p>
+                                    <p><label>Percentagem de Fertilização:</label> {{fertilization.percentageFertilizer|floatformat:"0"}} %</p>
+                                    <p><label>Bomba Doseadora:</label> {{fertilization|getPumpPercentage|floatformat:"0"}} %</p>
+                                    <!--<p><label>Fertilizante Utilizado:</label> {{fertilization.fertilizer|floatformat:"0"}} L</p>-->
+                                    <!--<p><label>Número de Fertilizações:</label> {{fertilization.fertilizationTimes|floatformat:"0"}}</p>-->
+                                    {%with fertilization|getdayPortionProducts as products%}
+                                    {%for product in products%}
+                                        <button class="btn btn-xs btn-primary">{{product.product}} - {{product.qt|floatformat:"2"}} Kg</button>
+                                    {%endfor%}
+                                    <button class="btn btn-xs btn-success">EC: {{fertilization.ecIrrigation|floatformat:"2"}} dS/m</button>
+                                {%endwith%}
+                                  </div>
+                                </article>
+                            </div>
+                            {% endfor %}
+                        </div>
+                    </div>
+                </div>
+                <div class="col-md-3 col-sm-3 col-xs-12">
+                    <div class="x_panel">
+                        <div class="x_title">
+                            <h2><i class="fa fa-tasks"></i> Tarefas Expiradas</h2>
+                            <div class="clearfix"></div>
+                        </div>
+                        <div class="x_content">
+                            {%for task in expiredTasks%}
+                                <article class="media event">
+                                  <a class="pull-left date">
+                                    <p class="month" style="color:#c8141f;">{{task.startDate|date:"M"}}</p>
+                                    <p class="day" style="color:#c8141f;">{{task.startDate|date:"d"}}</p>
+                                  </a>
+                                  <div class="media-body">
+                                    <a class="title" href="#">{{task.local}} | {{task.name}}</a>
+                                    <p>{{task.description}}</p>
+                                  </div>
+                                </article>
+                            {% endfor %}
+                        </div>
+                    </div>
+                </div>
+                <div class="col-md-3 col-sm-3 col-xs-12">
+                    <div class="x_panel">
+                        <div class="x_title">
+                            <h2><i class="fa fa-tasks"></i> Tarefas Iniciadas</h2>
+                            <div class="clearfix"></div>
+                        </div>
+                        <div class="x_content">
+                            {%for task in startedTasks%}
+                                <article class="media event">
+                                  <a class="pull-left date">
+                                    <p class="month" style="color:#5A738E;">{{task.startDate|date:"M"}}</p>
+                                    <p class="day" style="color:#5A738E;">{{task.startDate|date:"d"}}</p>
+                                  </a>
+                                  <div class="media-body">
+                                    <a class="title" href="#">{{task.local}} | {{task.name}}</a>
+                                    <p>{{task.description}}</p>
+                                  </div>
+                                </article>
+                            {% endfor %}
+                        </div>
+                    </div>
+                </div>
+                
+                <div class="col-md-3 col-sm-3 col-xs-12">
+                    <div class="x_panel">
+                        <div class="x_title">
+                            <h2><i class="fa fa-tasks"></i> Tarefas Agendadas</h2>
+                            <div class="clearfix"></div>
+                        </div>
+                        <div class="x_content">
+                            {%for task in nextTasks%}
+                                <article class="media event">
+                                  <a class="pull-left date">
+                                    <p class="month" style="color:#5A738E;">{{task.startDate|date:"M"}}</p>
+                                    <p class="day" style="color:#5A738E;">{{task.startDate|date:"d"}}</p>
+                                  </a>
+                                  <div class="media-body">
+                                    <a class="title" href="#">{{task.local}} | {{task.name}}</a>
+                                    <p>{{task.description}}</p>
+                                  </div>
+                                </article>
+                            
+                            {% endfor %}
+                        </div>
+                    </div>
+                </div>
+                
+                <div class="col-md-3 col-sm-3 col-xs-12">
+                    <div class="x_panel">
+                        <div class="x_title">
+                            <h2><i class="fa fa-tasks"></i> Tarefas concluídas</h2>
+                            <div class="clearfix"></div>
+                        </div>
+                        <div class="x_content">
+                            {%for task in completedTasks%}
+                                <article class="media event">
+                                  <a class="pull-left date">
+                                    <p class="month" style="color:#5A738E;">{{task.startDate|date:"M"}}</p>
+                                    <p class="day" style="color:#5A738E;">{{task.startDate|date:"d"}}</p>
+                                  </a>
+                                  <div class="media-body">
+                                    <a class="title" href="#">{{task.location}} | {{task.name}}</a>
+                                    <p>{{task.description}}</p>
+                                   
+                                  </div>
+                                    
+                                </article>
+                               
+                            {% endfor %}
+                        </div>
+                    </div>
+                </div>
+                <!--
+                <div class="col-md-12 col-sm-12 col-xs-12">
+                    <div class="x_panel">
+                        <div class="x_title">
+                            <h2><i class="fa fa-cloud"></i> Previsão do Tempo</h2>
+                            <div class="clearfix"></div>
+                        </div>
+                        <div class="x_content">
+                            <div id="container" style="width: 100%" >
+                                <div style="margin-top: 100px; text-align: center" id="loading"><i class="fa fa-spinner fa-spin"></i> A carregar dados de fonte externa</div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+                -->
+                <div class="clearfix"></div>
+                <div class="col-md-7 col-sm-7 col-xs-12">
+                    <div class="x_panel">
+                        <div class="x_title">
+                            <h2><i class="fa fa-sun-o"></i> Sol</h2>
+                            <div class="clearfix"></div>
+                        </div>
+                        <div class="x_content" id="sun">
+                            <div style="margin-top: 100px; text-align: center" id="sun-loading"><i class="fa fa-spinner fa-spin"></i> A carregar...</div>
+                        </div>
+                    </div>
+                </div>
+                <div class="col-md-5 col-sm-5 col-xs-12">
+                    <div class="x_panel">
+                        <div class="x_title">
+                            <h2><i class="fa fa-moon-o"></i> Lua</h2>
+                            <div class="clearfix"></div>
+                        </div>
+                        <div class="x_content" id="moon">
+                            <img id="preload" class="alt img-responsive" src="http://api.usno.navy.mil/imagery/moon.png?&amp;ID=AA-URL" alt="Como está a Lua Agora">
+                        </div>
+                    </div>
+                </div>
+                
+                
+                
+                <div class="clearfix"></div>
+                {% endblock %}
+                </div>
+                <footer>
+                    <div class="pull-right">
+                    2016 <a href="https://www.vitaminasdobosque.pt">Vitaminas do Bosque</a>
+                    </div>
+                    <div class="clearfix"></div>
+                </footer>
+            </div>
+        </div>
+        
+        
+        
+
+        {% block page_scripts %}
+        <script>
+            $(document).ready(function () {
+                function addZero(i) {
+                    if (i < 10) {
+                        i = "0" + i;
+                    }
+                    return i;
+                }
+                function convertHours(time) {
+                   //time = time.toString().match (/^([01]\d|2[0-3])(:)([0-5]\d)(:[0-5]\d)?$/) || [time];
+                   var newDate = new Date('01/01/1900 ' + time);
+                   var hours = addZero(newDate.getHours());
+                   var minutes = addZero(newDate.getMinutes());
+                   var seconds = addZero(newDate.getSeconds());
+                   return hours +':'+minutes+':'+seconds;
+                  }
+
+                $.ajax({ 
+                    type: 'GET', 
+                    url: 'http://api.sunrise-sunset.org/json?lat=41.6897557&lng=-8.386912,949&date=today', 
+                    data: { get_param: 'results' }, 
+                    success: function (data) {
+
+                        
+                        $('#sun').html(
+                        '<div class="col-xs-3  text-center"><h2>DIA</h2><h2>'+convertHours(data['results']['civil_twilight_begin'])+'</h2></div>'
+                        +'<div class="col-xs-3  text-center"><h2><span class="fa-stack "><i class="fa fa-arrow-up fa-stack-1x"></i><i class="fa fa-sun-o fa-stack-2x"></i></span> '+convertHours(data['results']['sunrise'])+'</h2></div>'
+                        +'<div class="col-xs-3  text-center"><h2><span class="fa-stack"><i class="fa fa-arrow-down fa-stack-1x"></i><i class="fa fa-sun-o fa-stack-2x"></i></span> '+convertHours(data['results']['sunset'])+'</h2></div>'
+                        +'<div class="col-xs-3  text-center"><h2>NOITE</h2><h2>'+convertHours(data['results']['civil_twilight_end'])+'</h2></div>'
+                        +'<div class="col-xs-12 text-center"><h2><span class="fa-stack"><i class="fa fa-clock-o fa-stack-1x"></i><i class="fa fa-sun-o fa-stack-2x"></i></span> Horas de Sol: '+data['results']['day_length']+'</h2>'
+                        +'</div>');
+                        //var names = data
+                        //$('#cand').html(data);
+                    }
+                });
+            });
+        </script>
+        
+        
+        <script src="{% static "js/weather.js" %}"></script>
+        
+        {% endblock %}
+        <script>
+            $("#importData").click(function(){
+                 $.ajax({
+                     url:"/importdata",
+                     type:"GET",
+                     beforeSend: function(){
+                         $('.loaderImage').show();   
+                     },
+                     success:function(result){
+                        $('.loaderImage').html("<img width=300px src=\"{% static 'images/green_arrow_up.png' %}\"/><h1>Dados importados com sucesso</h1>");
+                        setTimeout(function(){$('.loaderImage').hide();}, 2000);
+                     }
+                 }).error(function(){
+                     $('.loaderImage').html("<h1>ERRO</h1>");
+                        setTimeout(function(){$('.loaderImage').hide();}, 2000);
+                     });
+             });
+        </script>
+    </body>
+</html>

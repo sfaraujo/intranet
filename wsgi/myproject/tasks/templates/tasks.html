@@ -1,0 +1,970 @@
+{% extends "index.html" %}
+{% load static %}
+{% load humanize %}
+{% load l10n %}
+{% load extra_tags %}
+{% block head_scripts %}
+<link rel="stylesheet" type="text/css" href="{% static 'css/bootstrap-year-calendar.min.css' %}">
+<link rel="stylesheet" type="text/css" href="https://cdn.datatables.net/buttons/1.2.2/css/buttons.dataTables.min.css">
+<script src="{% static 'js/bootstrap-datepicker.min.js' %}"></script>
+<script src="{% static 'js/bootstrap-year-calendar.js' %}"></script>
+<script src="{% static 'js/bootstrap-year-calendar.pt.js' %}"></script>
+<script src="https://cdn.datatables.net/buttons/1.2.2/js/dataTables.buttons.min.js"></script>
+<script src="//cdn.datatables.net/buttons/1.2.2/js/buttons.flash.min.js"></script>
+<script src="//cdnjs.cloudflare.com/ajax/libs/jszip/2.5.0/jszip.min.js"></script>
+<script src="//cdn.rawgit.com/bpampuch/pdfmake/0.1.18/build/pdfmake.min.js"></script>
+<script src="//cdn.rawgit.com/bpampuch/pdfmake/0.1.18/build/vfs_fonts.js"></script>
+<script src="//cdn.datatables.net/buttons/1.2.2/js/buttons.html5.min.js"></script>
+<script src="//cdn.datatables.net/buttons/1.2.2/js/buttons.print.min.js"></script>
+<script src="https://cdn.datatables.net/fixedcolumns/3.2.2/js/dataTables.fixedColumns.min.js"></script>
+{% endblock %}
+{% block content %}
+<div class="col-xs-12">
+    <div class="x_panel">
+        <div class="x_content">
+            <div class="" role="tabpanel" data-example-id="togglable-tabs">
+              <ul id="myTab1" class="nav nav-tabs bar_tabs right" role="tablist">
+                <li role="presentation" class=""><a href="#tab_content33" role="tab" id="stats-tabb" data-toggle="tab" aria-controls="stats" aria-expanded="false">Estatísticas</a>
+                </li>
+                <li role="presentation" class=""><a href="#tab_content22" role="tab" id="list-tabb" data-toggle="tab" aria-controls="list" aria-expanded="false">Lista</a>
+                </li>
+                <li role="presentation" class="active"><a href="#tab_content11" id="calendar-tabb" role="tab" data-toggle="tab" aria-controls="calendar" aria-expanded="true">Calendário</a>
+                </li>
+              </ul>
+              <div id="myTabContent2" class="tab-content">
+                <div role="tabpanel" class="tab-pane fade active in" id="tab_content11" aria-labelledby="calendar-tab">
+                        <div class="col-xs-12"><a id="showAllTasks" class="pull-right col-lg-2 col-md-4 col-sm-4 col-xs-12 btn btn-default btn-xs"></a></div>
+
+                  <div id="calendar" data-provide="calendar"></div>
+                    <div class="modal modal-fade" id="event-modal">
+                    	<div class="modal-dialog">
+                    		<div class="modal-content">
+                    			<div class="modal-header">
+                    				<button type="button" class="close" data-dismiss="modal"><span aria-hidden="true">×</span><span class="sr-only">Fechar</span></button>
+                    				<h4 class="modal-title">
+                    					Tarefa
+                    				</h4>
+                    			</div>
+                    			<div class="modal-body">
+                    			</div>
+                    			<div class="modal-footer">
+                    			</div>
+                    		</div>
+                    	</div>
+                    </div>
+                </div>
+                <div role="tabpanel" class="tab-pane fade" id="tab_content22" aria-labelledby="list-tab">
+                    
+                  <div class="table-responsive">
+                      <table id='taskslist' class="table table-striped table-hover">
+                        <thead>
+                            <tr>
+                                <th>ID</th>
+                                <th>Estado</th>
+                                <th>Tarefa</th>
+                                <th>Local</th>
+                                <th>Categoria</th>
+                                <th>Data de Início</th>
+                                <th>Data de Fim</th>
+                                <th>Pessoas</th>
+                                <th>Horas</th>
+                                <th>Caderno de Campo</th>
+                                <th><a type="button" href=" javascript:newEvent('+value+')" class="pull-right btn btn-info"><i class="fa fa-plus"></i> Nova tarefa</a></th>
+                            </tr>
+                            
+                        </thead>
+                        <tfoot>
+                            <tr>
+                                <th></th>
+                                <th class="pesquisar">Estado</th>
+                                <th class="pesquisar">Tarefa</th>
+                                <th class="pesquisar">Local</th>
+                                <th class="pesquisar">Categoria</th>
+                                <th class="pesquisar">Data de Início</th>
+                                <th class="pesquisar">Data de Fim</th>
+                                <th class="pesquisar">Pessoas</th>
+                                <th class="pesquisar">Horas</th>
+                                <th class="pesquisar">Caderno de Campo</th>
+                                <th></th>
+                            </tr>
+                            
+                            
+                        </tfoot>
+                      </table>
+                  </div>
+                </div>
+                <div role="tabpanel" class="tab-pane fade" id="tab_content33" aria-labelledby="stats-tab">
+                    <div class="col-xs-9" id="stats"></div>
+                </div>
+              </div>
+            </div>
+        </div>
+    </div>
+</div>
+<div class="modal modal-fade" id="edit-event-modal">
+	<div class="modal-dialog">
+		<div class="modal-content">
+			<div class="modal-header">
+				<button type="button" class="close" data-dismiss="modal"><span aria-hidden="true">×</span><span class="sr-only">Fechar</span></button>
+				<h4 class="modal-title">
+					Tarefa
+				</h4>
+			</div>
+			<div class="modal-body">
+				
+				<form id="eventForm" data-toggle="validator" class="form-horizontal" method="post">
+    				{% csrf_token %}
+    				<input type="hidden" name="event-index">
+					<div class="form-group">
+						<label for="event-name" class="col-xs-4 control-label">Tarefa</label>
+						<div class="col-xs-7">
+							<input name="event-name" required type="text" class="form-control">
+						</div>
+					</div>
+					<div class="form-group">
+						<label for="event-local" class="col-xs-4 control-label">Local</label>
+						<div class="col-xs-7">
+    						<select id="event-local" name="event-local" class="form-control">
+                                <option></option>
+                                {%for local in locales%}
+                                    <option value="{{local.name}}">{{local.name}}</option>
+                                {%endfor%}
+                            </select>
+						</div>
+					</div>
+					<div class="form-group">
+						<label for="event-category" class="col-xs-4 control-label">Categoria</label>
+						<div class="col-xs-7">
+    						<select id="event-category" name="event-category" class="form-control">
+                                <option></option>
+                                {%for taskCategory in taskCategories%}
+                                    <option value="{{taskCategory.name}}">{{taskCategory.name}}</option>
+                                {%endfor%}
+                            </select>
+						</div>
+					</div>
+					<div class="form-group">
+						<label for="min-date" class="col-xs-2 col-sm-4 control-label">Datas</label>
+						<div class="col-xs-10 col-sm-7">
+							<div class="input-group input-daterange" data-provide="datepicker">
+								<input name="event-start-date" type="text" class="form-control">
+								<span class="input-group-addon">até</span>
+								<input name="event-end-date" type="text" class="form-control">
+							</div>
+						</div>
+					</div>
+					<div class="form-group">
+						<label for="event-name" class="col-xs-4 control-label">Descrição</label>
+						<div class="col-xs-7">
+							<textarea  name="event-description" class="form-control"></textarea>
+						</div>
+					</div>
+					<div class="form-group">
+						<label for="event-state" class="col-xs-4 control-label">Estado</label>
+						<div class="col-xs-7">
+    						<select id="event-state" name="event-state" class="form-control">
+                                <option></option>
+                                {%for state in states%}
+                                    <option value="{{state.name}}">{{state.name}}</option>
+                                {%endfor%}
+                            </select>
+						</div>
+					</div>
+					<div class="form-group">
+						<label for="event-persons" class="col-xs-4 control-label">Pessoas</label>
+						<div class="col-xs-7">
+    						<input name="event-persons" type="number" class="form-control">
+						</div>
+                    </div>
+                    <div class="form-group">
+						<label for="event-duration" class="col-xs-4 control-label">Horas</label>
+						<div class="col-xs-7">
+    						<input name="event-duration" type="number" class="form-control">
+						</div>
+					</div>
+					
+					<div class="form-group">
+						<label for="event-field_book" class="col-xs-4 control-label">Caderno de Campo</label>
+						<div class="col-xs-7">
+    						<select id="event-field_book" name="event-field_book" class="form-control">
+                                <option value="NÃO">NÃO</option>
+                                <option value="SIM">SIM</option>
+                            </select>
+						</div>
+					</div>
+				</form>
+			</div>
+			<div class="modal-footer">
+				<button type="button" class="btn btn-default" data-dismiss="modal">Cancelar</button>
+				<button type="button" class="btn btn-primary" id="save-event"><i class="fa fa-save"></i>  Guardar</button>
+			</div>
+		</div>
+	</div>
+</div>
+<div class="modal modal-fade" id="addWorkDay-modal">
+	<div class="modal-dialog">
+		<div class="modal-content">
+			<div class="modal-header">
+				<button type="button" class="close" data-dismiss="modal"><span aria-hidden="true">×</span><span class="sr-only">Fechar</span></button>
+				<h4 class="modal-title">
+					Adicionar Dia de Trabalho
+				</h4>
+			</div>
+			<div class="modal-body">
+				
+				<form id="WorkDayForm" data-toggle="validator" class="form-horizontal" method="post">
+    				{% csrf_token %}
+    				<input type="hidden" name="event-index">
+					<div class="form-group">
+						<label for="min-date" class="col-xs-2 col-sm-4 control-label">Data</label>
+						<div class="col-xs-10 col-sm-7">
+							<div class="input-group input-daterange" data-provide="datepicker">
+								<input name="event-start-date" type="text" class="form-control">
+								<span class="input-group-addon">até</span>
+								<input name="event-end-date" type="text" class="form-control">
+							</div>
+						</div>
+					</div>
+					
+					<div class="form-group">
+						<label for="event-persons" class="col-xs-4 control-label">Pessoas</label>
+						<div class="col-xs-7">
+    						<input name="event-persons" type="number" class="form-control">
+						</div>
+                    </div>
+                    <div class="form-group">
+						<label for="event-duration" class="col-xs-4 control-label">Horas</label>
+						<div class="col-xs-7">
+    						<input name="event-duration" type="number" class="form-control">
+						</div>
+					</div>
+				</form>
+			</div>
+			<div class="modal-footer">
+				<button type="button" class="btn btn-default" data-dismiss="modal">Cancelar</button>
+				<button type="button" class="btn btn-primary" id="saveNewWorkDay"><i class="fa fa-save"></i>  Guardar</button>
+			</div>
+		</div>
+	</div>
+</div>
+
+<div id="context-menu">
+</div>
+{% endblock %}
+
+{% block page_scripts %}
+<script>
+$(document).ready(function (){
+    Highcharts.chart('stats', {
+        chart: {
+            type: 'column',
+
+        },
+        title: {
+            text: 'Horas de Trabalho'
+        },
+        xAxis: {
+            type:'category'
+        },
+        yAxis: {
+            min: 0,
+            title: {
+                text: 'Total de Horas de trabalho'
+            },
+            stackLabels: {
+                enabled: true,
+                style: {
+                    fontWeight: 'bold',
+                    color: (Highcharts.theme && Highcharts.theme.textColor) || 'gray'
+                }
+            }
+        },
+        legend: {
+            align: 'right',
+            x: -30,
+            verticalAlign: 'top',
+            y: 25,
+            floating: true,
+            backgroundColor: (Highcharts.theme && Highcharts.theme.background2) || 'white',
+            borderColor: '#CCC',
+            borderWidth: 1,
+            shadow: false
+        },
+        tooltip: {
+            headerFormat: '<span style="font-size:11px">{series.name}</span><br>',
+            pointFormat: '<span style="color:{point.color}">{point.name}</span>: <b>{point.y:.2f}</b> Horas<br/>'
+        },
+        plotOptions: {
+            column: {
+                dataLabels: {
+                    enabled: true,
+                    format: '{point.y:.0f} Horas',
+                    //color: (Highcharts.theme && Highcharts.theme.dataLabelsColor) || 'white'
+                }
+            }
+        },
+        series: [
+            {%for year in year_list %}
+                    {
+                        name: '{{year}}',
+                        data: [
+                            {%for local in locales_list %}
+                                {%for yd in year_durations %}
+                                    {%if yd.0 == local and yd.1 == year %}
+                                        {
+                                            name: '{{local}}',
+                                            y: {% localize off %}{{yd.2|default_if_none:0}}{% endlocalize %},
+                                            drilldown: '{{local}}-{{year}}'
+                                        },
+                                    {%endif%}
+                                {%endfor%}
+                            {%endfor%}
+                        ]
+                    },
+            {%endfor%}
+        ],
+        drilldown: {
+            series: [
+                {%for year in year_list %}
+                    {%for local in locales_list %}
+                        {%for yd in year_durations %}
+                            {%if yd.0 == local and yd.1 == year %}
+                                {
+                                    name: '{{local}}-{{year}}',
+                                    id: '{{local}}-{{year}}',
+                                    data: [
+                                        {%for cat in cat_list %}
+                                            {%if cat.0 == yd.0 and cat.1 == yd.1 %}
+                                                [
+                                                    '{{cat.2}}',
+                                                    {{cat.3}}
+                                                ],
+                                            {%endif%}
+                                        {%endfor%}
+                                    ]
+                                },
+                            {%endif%} 
+                        {%endfor%}
+                    {%endfor%}
+                {%endfor%}
+            ]
+        }
+    });
+});
+
+
+
+
+function showEvent(e) {
+    
+    $('#event-modal').modal('hide');
+    var content = '';
+    var contentFooter = '';
+    for(var i in e.events) {
+        task_start_date = new Date(e.events[i].startDate);
+        task_start_day = task_start_date.getDate();
+        task_start_month = task_start_date.getMonth()+1;
+        task_start_year = task_start_date.getFullYear();
+        task_end_date = new Date(e.events[i].endDate);
+        task_end_day = task_end_date.getDate();
+        task_end_month = task_end_date.getMonth()+1;
+        task_end_year = task_end_date.getFullYear();
+        var value = JSON.stringify(e.events[i]).replace(/\"/g,'\'');
+        if (e.events[i].state == 'Concluído'){
+            state='<div style="font-size:120%" class="pull-right label label-success "><i class="fa fa-check-square"></i> '+ e.events[i].state+'</div>';
+        }
+        else{
+            state='<div style="font-size:120%" class="pull-right label label-default ">'+ e.events[i].state+'</div>';
+        }
+        if (e.events[i].category != 'Fertilização'){
+            contentFooter = '<a type="button" href=\" javascript:deleteEvent('+value+') \" class="pull-right btn btn-danger btn-xs"><i class="fa fa-trash"></i> Apagar</a>'
+                        +'<a type=\"button\" href=\" javascript:editEvent('+value+')\" class=\"pull-right btn btn-xs btn-primary\"><i class="fa fa-edit"></i> Editar</a>'
+                        + '<div class="clearfix"></div>'
+                        + '<div class="ln_solid"></div>'
+        }
+        
+        workdays = '';
+        for ( var wd in e.events[i].workdays){
+            start_date = new Date(e.events[i].workdays[wd].startDate);
+            start_day = start_date.getDate();
+            start_month = start_date.getMonth()+1;
+            start_year = start_date.getFullYear();
+            end_date = new Date(e.events[i].workdays[wd].endDate);
+            end_day =end_date.getDate();
+            end_month = end_date.getMonth()+1;
+            end_year = end_date.getFullYear();
+            var wk = JSON.stringify(e.events[i].workdays[wd]).replace(/\"/g,'\'');
+            workdays += '<div class="col-xs-12"><p><a type="button" href=\" javascript:deleteWorkDay('+wk+') \" class="btn btn-danger btn-xs"><i class="fa fa-trash"></i></a><strong>Data:</strong> ' + start_day+' / '+start_month+' / '+start_year + ' | <strong>Pessoas:</strong> ' + e.events[i].workdays[wd].persons + ' | <strong>Horas de trabalho:</strong> ' + e.events[i].workdays[wd].duration + ' H </p></div>'
+        }
+        content += '<div class="event-content">'
+                        + '<div class="event-name" style="color:' + e.events[i].color + '"><h2>' + e.events[i].name + '</h2></div>'
+                        + state
+                        + '<div class="event-local"><label style="font-size:100%" class="label label-success">' + e.events[i].local + '</label> <label style="font-size:100%" class="label label-info">' + e.events[i].category + '</label></div>'
+                        + '<div class="clearfix"></div>'
+                        +'<div class="col-xs-12"><p><strong>Data de Início:</strong> ' + task_start_day+' / '+task_start_month+' / '+task_start_year + ' | <strong>Pessoas:</strong> ' + e.events[i].persons + ' | <strong>Horas de Trabalho:</strong> ' + e.events[i].duration + ' H </p></div>'
+                        + '<div class="col-xs-12"><p style="margin-top:10px; padding:10px;" >' + e.events[i].description + '</p></div>'
+                        + contentFooter
+                        +'<h5>Outros dias de trabalho</h5>'
+                        +'<a type=\"button\" href=\" javascript:addWorkDay('+value+')\" class=\"pull-right btn btn-xs btn-primary\"><i class="fa fa-plus"></i> Adicionar Dias de Trabalho</a>'
+                        + workdays
+                        + '<div class="clearfix"></div>'
+                    + '</div>';
+    }
+    $('#event-modal .modal-body').html(content);
+    var value = JSON.stringify(e.events[0]).replace(/\"/g,'\'');
+    $('#event-modal .modal-footer').html('<a type=\"button\" href=\" javascript:newEvent('+value+')\" class=\"btn btn-primary\"><i class="fa fa-plus"></i>  Adicionar nova tarefa</a><button type="button" class="btn btn-default" data-dismiss="modal">Fechar</button>');
+    $('#event-modal').modal();
+    
+}
+
+function addWorkDay(event) {
+    $('#addWorkDay-modal input[name="event-index"]').val(event ? event.id : '');
+    start_date = new Date(event.startDate);
+    start_day = start_date.getDate();
+    start_month = start_date.getMonth();
+    start_year = start_date.getFullYear();
+    end_date = new Date(event.endDate);
+    end_day =end_date.getDate();
+    end_month = end_date.getMonth();
+    end_year = end_date.getFullYear();
+    
+    $('#addWorkDay-modal input[name="event-start-date"]').datepicker('update', event ? new Date(start_year, start_month, start_day) : '');
+    $('#addWorkDay-modal input[name="event-end-date"]').datepicker('update', event ? new Date(end_year, end_month, end_day) : '');
+    
+    $('#addWorkDay-modal').modal();
+}
+
+function editEvent(event) {
+    
+    start_date = new Date(event.startDate);
+    start_day = start_date.getDate();
+    start_month = start_date.getMonth();
+    start_year = start_date.getFullYear();
+    end_date = new Date(event.endDate);
+    end_day =end_date.getDate();
+    end_month = end_date.getMonth();
+    end_year = end_date.getFullYear();
+
+    $('#edit-event-modal input[name="event-index"]').val(event ? event.id : '');
+    $('#edit-event-modal input[name="event-name"]').val(event ? event.name : '');
+    $('#event-local option[value="'+event.local+'"]').prop('selected', true);
+    $('#event-category option[value="'+event.category+'"]').prop('selected', true);
+    $('#event-state option[value="'+event.state+'"]').prop('selected', true);
+    $('#event-field_book option[value="'+event.field_book+'"]').prop('selected', true);
+    $('#edit-event-modal input[name="event-persons"]').val(event ? event.persons : '');
+    $('#edit-event-modal input[name="event-duration"]').val(event ? event.duration : '');
+    $('#edit-event-modal textarea[name="event-description"]').val(event ? event.description : '');
+    $('#edit-event-modal input[name="event-start-date"]').datepicker('update', event ? new Date(start_year, start_month, start_day) : '');
+    $('#edit-event-modal input[name="event-end-date"]').datepicker('update', event ? new Date(end_year, end_month, end_day) : '');
+    $('#edit-event-modal').modal();
+}
+
+function newEvent(event) {
+    $('#edit-event-modal input[name="event-start-date"]').datepicker('getDate');
+    $('#edit-event-modal input[name="event-end-date"]').datepicker('getDate');
+    $('#edit-event-modal').modal();
+}
+
+
+function deleteEvent(event) {
+    var c = confirm('Tem a certeza que pretende apagar a tarefa '+event.name);
+    if(c==true){
+        $('#event-modal').modal('hide');
+        var dataSource = $('#calendar').data('calendar').getDataSource();
+        for(var i in dataSource) {
+            
+            if(dataSource[i].id == parseInt(event.id)) {
+                dataSource.splice(i, 1);
+                $.ajax({
+                    type: "POST",
+                    url: "{% url 'deleteTask' %}",
+                    data: {'id':event.id,
+                            'csrfmiddlewaretoken': '{{ csrf_token }}'
+                    },
+                    success: function(response){
+                        //$('#calendar').data('calendar').setDataSource(dataSource);
+                        //$("#taskslist").dataTable().fnReloadAjax();
+                        location.reload();
+                    }
+                });
+                break;
+            }
+        }
+        
+    }
+}
+
+function deleteWorkDay(wd) {
+    var c = confirm('Tem a certeza que pretende apagar o dia de trabalho?');
+    if(c==true){
+        $.ajax({
+            type: "POST",
+            url: "{% url 'deleteWorkDay' %}",
+            data: {'id':wd.id,
+                    'csrfmiddlewaretoken': '{{ csrf_token }}'
+            },
+            success: function(response){
+                //$('#calendar').data('calendar').setDataSource(dataSource);
+                //$("#taskslist").dataTable().fnReloadAjax();
+                location.reload();
+            }
+        });
+    }
+}
+
+function saveEvent() {
+    var event = {
+        id: $('#edit-event-modal input[name="event-index"]').val(),
+        name: $('#edit-event-modal input[name="event-name"]').val(),
+        local: $('#event-local[name="event-local"]').val(),
+        category: $('#event-category[name="event-category"]').val(),
+        state: $('#event-state[name="event-state"]').val(),
+        field_book: $('#event-field_book[name="event-field_book"]').val(),
+        persons: $('#edit-event-modal input[name="event-persons"]').val(),
+        duration: $('#edit-event-modal input[name="event-duration"]').val(),
+        description: $('#edit-event-modal textarea[name="event-description"]').val(),
+        startDate: $('#edit-event-modal input[name="event-start-date"]').datepicker('getDate'),
+        endDate: $('#edit-event-modal input[name="event-end-date"]').datepicker('getDate')
+    }
+    
+    var dataSource = $('#calendar').data('calendar').getDataSource();
+    if (event.name != "" && event.local != "" && event.category != "" && event.state != "" && event.persons != "" && event.duration != ""){
+        if(event.id) {
+             $.ajax({
+                type: "POST",
+                url: "{% url 'saveTask' %}",
+                data: $('#eventForm').serialize(),
+                success: function(response){
+                    //$('#calendar').data('calendar').setDataSource(dataSource);
+                    //$("#taskslist").dataTable().fnReloadAjax();
+                    //$("#taskslist").dataTable().fnAdjustColumnSizing();
+                    //$('#edit-event-modal').modal('hide');
+                    //$('#event-modal').modal('hide');
+                    location.reload();
+                }
+            });
+            
+            for(var i in dataSource) {
+                if(dataSource[i].id == event.id) {
+                    dataSource[i].name = event.name;
+                    dataSource[i].local = event.local;
+                    dataSource[i].category = event.category;
+                    dataSource[i].state = event.state;
+                    dataSource[i].description = event.description;
+                    dataSource[i].field_book = event.field_book;
+                    dataSource[i].persons = event.persons;
+                    dataSource[i].duration = event.duration;
+                    dataSource[i].startDate = event.startDate;
+                    dataSource[i].endDate = event.endDate;
+                }
+            }
+        }
+        else
+        {
+            $.ajax({
+                type: "POST",
+                url: "{% url 'saveTask' %}",
+                data: $('#eventForm').serialize(),
+                success: function(response){
+                    //$('#calendar').data('calendar').setDataSource(dataSource);
+                    //$("#taskslist").dataTable().fnReloadAjax();
+                    //$("#taskslist").dataTable().fnAdjustColumnSizing();
+                    //$('#edit-event-modal').modal('hide');
+                    //$('#event-modal').modal('hide');
+                    location.reload();
+                }
+            });
+            var newId = 0;
+            for(var i in dataSource) {
+                if(dataSource[i].id > newId) {
+                    newId = dataSource[i].id;
+                }
+            }
+            newId++;
+            event.id = newId;
+        
+            dataSource.push(event);
+        }
+    }
+}
+
+
+
+function saveNewWorkDay() {
+    $.ajax({
+        type: "POST",
+        url: "{% url 'saveWorkDay' %}",
+        data: $('#WorkDayForm').serialize(),
+        success: function(response){
+            location.reload();
+        }
+    });
+}
+
+
+
+function deleteWorkDay(event) {
+    var c = confirm('Tem a certeza que pretende apagar o registo?');
+    if(c==true){
+        $.ajax({
+            type: "POST",
+            url: "{% url 'deleteWorkDay' %}",
+            data: {'id':event.id,
+                    'csrfmiddlewaretoken': '{{ csrf_token }}'
+            },
+            success: function(response){
+                location.reload();
+            }
+        });
+    }
+}
+
+
+
+
+
+
+$(function() {
+    var currentYear = new Date().getFullYear();
+	
+    $('#calendar').calendar({ 
+        enableContextMenu: true,
+        enableRangeSelection: true,
+        contextMenuItems:[
+            {
+                text: 'Editar',
+                click: editEvent
+            },
+            {
+                text: 'Apagar',
+                click: deleteEvent
+            }
+        ],
+        selectRange: function(e) {
+            if (e.startDate != e.endDate | e.events.length == 0  ){
+                editEvent({ startDate: e.startDate, endDate: e.endDate });
+            }
+        },
+        clickDay: function(e) {
+            if(e.events.length > 0) {
+                $(e.element).popover('hide');
+                showEvent(e);
+            }
+        },
+        mouseOnDay: function(e) {
+            if(e.events.length > 0) {
+                var content = '';
+                
+                for(var i in e.events) {
+                    if (e.events[i].state == 'Concluído'){
+                        state='<div class="label label-success "><i class="fa fa-check-square"></i> '+ e.events[i].state+'</div>';
+                    }
+                    else{
+                        state='<div class="label label-primary ">'+ e.events[i].state+'</div>';
+                    }
+                    content += '<div class="event-tooltip-content">'
+                                    + '<div class="event-name" style="color:' + e.events[i].color + '">' + e.events[i].name + '</div>'
+                                    + '<div class="event-local"><i class="fa fa-map-marker"></i> ' + e.events[i].local + '</div>'
+                                    + state
+                                + '</div>';
+                    if(e.events.length > 1) {
+                        content += '<hr></hr>';
+                    }
+                }
+            
+                $(e.element).popover({ 
+                    trigger: 'manual',
+                    container: 'body',
+                    html:true,
+                    content: content,
+                    placement: 'auto bottom'
+                });
+                
+                $(e.element).popover('show');
+            }
+        },
+        mouseOutDay: function(e) {
+            if(e.events.length > 0) {
+                $(e.element).popover('hide');
+            }
+        },
+        dayContextMenu: function(e) {
+            $(e.element).popover('hide');
+        },
+        dataSource: [
+            {%for task in tasks %}
+            {
+                id: {{task.pk}},
+                name: '{{task.name}}',
+                description: '{{task.description}}',
+                local: '{{task.local}}',
+                category: '{{task.category}}',
+                created_by: '{{task.created_by}}',
+                state: '{{task.state}}',
+                priority: '{{task.priority}}',
+                field_book: '{{task.field_book}}',
+                persons: '{{task.persons}}',
+                duration: '{{task.duration}}',
+                workdays: [
+                    {%with task|getWorkDaysByTasks as wds %}
+                        {%for wd in wds %}{
+                            id: {{wd.pk}},
+                            persons: '{{wd.persons}}',
+                            duration: '{{wd.duration}}',
+                            startDate: new Date({{wd.startDate|date:'Y'}},{{wd.startDate|date:'m'}}-1,{{wd.startDate|date:'d'}}),
+                            endDate: new Date({{wd.endDate|date:'Y'}},{{wd.endDate|date:'m'}}-1,{{wd.endDate|date:'d'}})
+                            },
+                        {%endfor%}
+                    {%endwith%}
+                ],
+                startDate: new Date({{task.startDate|date:'Y'}},{{task.startDate|date:'m'}}-1,{{task.startDate|date:'d'}}),
+                endDate: new Date({{task.endDate|date:'Y'}},{{task.endDate|date:'m'}}-1,{{task.endDate|date:'d'}})
+            },
+            {%with task|getWorkDaysByTasks as wds %}
+                {%for wd in wds %}
+                {
+                    id: {{task.pk}},
+                    name: '* {{task.name}}',
+                    description: '{{task.description}}',
+                    local: '{{task.local}}',
+                    category: '{{task.category}}',
+                    created_by: '{{task.created_by}}',
+                    state: '{{task.state}}',
+                    priority: '{{task.priority}}',
+                    field_book: '{{task.field_book}}',
+                    persons: '{{wd.persons}}',
+                    duration: '{{wd.duration}}',
+                    workdays: [
+                        {%with task|getWorkDaysByTasks as wds %}
+                            {%for wd in wds %}{
+                                persons: '{{wd.persons}}',
+                                duration: '{{wd.duration}}',
+                                startDate: new Date({{wd.startDate|date:'Y'}},{{wd.startDate|date:'m'}}-1,{{wd.startDate|date:'d'}}),
+                                endDate: new Date({{wd.endDate|date:'Y'}},{{wd.endDate|date:'m'}}-1,{{wd.endDate|date:'d'}})
+                                },
+                            {%endfor%}
+                        {%endwith%}
+                    ],
+                    startDate: new Date({{wd.startDate|date:'Y'}},{{wd.startDate|date:'m'}}-1,{{wd.startDate|date:'d'}}),
+                    endDate: new Date({{wd.endDate|date:'Y'}},{{wd.endDate|date:'m'}}-1,{{wd.endDate|date:'d'}})
+                    
+                },
+                {%endfor%}
+            {%endwith%}
+            {%endfor%}
+            {%for dayPortion in dayPortions %}
+            {%with dayPortion|getdayPortionProducts as dayPortionProducts%}
+            {
+                id: {{dayPortion.pk}},
+                name: 'Fertilização - {{dayPortion.timeIrrigation|floatformat:"0"}} Minutos',
+                description: '<label>Periodo:</label> {{dayPortion.period.period_name}}<br><label>Produtos Utilizados:</label> {%for dayProducts in dayPortionProducts%}<label style="font-size:100%" class="label label-primary">{{dayProducts.product.name}} - {{dayProducts.qt|floatformat:"1"|intcomma}} Kg</label> {%endfor%}<br><label>Água no depósito:</label> {{dayPortion.depositWaterUsed}} L<br><label>Tempo:</label> {{dayPortion.timeIrrigation|floatformat:"0"}} Minutos<br><label>Fertilizante Utilizado:</label> {{dayPortion.fertilizer}} L<br><label>EC:</label> {{dayPortion.ecIrrigation}} uS/m2<br><label>Número de Fertilizações previstas:</label> {{dayPortion.fertilizationTimes}}',
+                local: '{{dayPortion.irrigationSystem}}',
+                category: 'Fertilização',
+                created_by: '',
+                state: '{{dayPortion.state}}',
+                priority: '0',
+                startDate: new Date({{dayPortion.date|date:'Y'}},{{dayPortion.date|date:'m'}}-1,{{dayPortion.date|date:'d'}}),
+                endDate: new Date({{dayPortion.date|date:'Y'}},{{dayPortion.date|date:'m'}}-1,{{dayPortion.date|date:'d'}})
+            },
+            {%endwith%}
+            {%endfor%}
+        ]
+        
+            
+    });
+    
+    $('#calendar').data('calendar').setLanguage('pt');
+    
+    $('#save-event').click(function() {
+        saveEvent();
+    });
+    
+    $('#delete-event').click(function() {
+        table.ajax.reload();
+    });
+    
+    $('#new-event').click(function() {
+        newEvent();
+    });
+    
+    $('#saveNewWorkDay').click(function() {
+        saveNewWorkDay();
+    });
+    
+});
+</script>
+            
+<script type="text/javascript" language="javascript" class="init">
+    $(document).ready(function (){
+        $('#showAllTasks').html("Mostrar Tarefas Concluídas");
+        $('#showAllTasks').attr("href", "?all=true");
+        if (window.location.href.toString().split(window.location.host)[1] == '/tarefas/?all=true'){
+            $('#showAllTasks').html("Ocultar Tarefas Concluídas");
+            $('#showAllTasks').attr("href", "?all=false");
+        };
+        var table = $('#taskslist').dataTable( {
+            "retrieve": true,
+            "info": true,
+            "responsive": true,
+            "pageLength": 50,
+             "ajax": {
+                 "url": "{% url 'getTasks'%}",
+                 "dataSrc": ""
+             },
+             "columns": [
+                 { "data": "pk"},
+                 { "data": "fields.state"},
+                 { "data": "fields.name"},
+                 { "data": "fields.local"},
+                 { "data": "fields.category"},
+                 { "data": "fields.startDate",
+                        "render": function (data) {
+                            var date = new Date(data);
+                            var month = date.getMonth() + 1;
+                            return date.getDate() + "/" + (month.length > 1 ? month : "0" + month) + "/" + date.getFullYear();
+                        }
+                 },
+                 { "data": "fields.endDate",
+                        "render": function (data) {
+                            var date = new Date(data);
+                            var month = date.getMonth() + 1;
+                            return date.getDate() + "/" + (month.length > 1 ? month : "0" + month) + "/" + date.getFullYear();
+                        }
+                 },
+                 { "data": "fields.persons"},
+                 { "data": "fields.duration"},
+                 { "data": "fields.field_book"},
+                 { "data": "pk"},
+            ],
+            
+            "columnDefs": [
+             {
+              "targets": 2,
+              "render": function ( data, type, row, meta ) {
+                return '<a data-toggle="tooltip" data-placement="top" title="" data-original-title="Descrição: '+row.fields.description+'">'+data+'</a>'
+                }
+            },
+             {
+              "targets": 10,
+              "render": function ( data, type, row, meta ) {
+                var task = JSON.stringify(row.fields);
+                var json_obj = JSON.parse(task);
+                json_obj['id'] = String(row.pk);
+                json_string = JSON.stringify( json_obj ).replace(/\"/g,'\'');
+                var table = $('#taskslist').DataTable();
+                        return '<a href=" javascript:editEvent('+json_string+')" class="btn btn-xs btn-primary" id="editEvent"><i class="fa fa-edit"> Editar</i></a><a id="deleteEvent" type="button" href=\" javascript:deleteEvent('+json_string+') \" class="pull-right btn btn-danger btn-xs"><i class="fa fa-trash"></i></a>';
+            },
+            } ],
+            "language": {
+                "sProcessing":   "A processar...",
+                "sLengthMenu":   "Mostrar _MENU_ registos",
+                "sZeroRecords":  "Não foram encontrados resultados",
+                "sInfo":         "Mostrar de _START_ até _END_ de _TOTAL_ registos",
+                "sInfoEmpty":    "Mostrar de 0 até 0 de 0 registos",
+                "sInfoFiltered": "(filtrado de _MAX_ registos no total)",
+                "sInfoPostFix":  "",
+                "sSearch":       "Procurar ",
+                "sUrl":          "",
+                "oPaginate": {
+                    "sFirst":    "Primeiro",
+                    "sPrevious": "Anterior",
+                    "sNext":     "Seguinte",
+                    "sLast":     "Último"
+                },
+                "buttons":{
+                    "pageLength": "Alterar resultados por página",
+                }
+            },
+            "footerCallback": function ( row, data, start, end, display ) {
+                var api = this.api(), data;
+     
+                
+     
+                // Total over all pages
+                total = api
+                    .column( 8 )
+                    .data()
+                    .reduce( function (a, b) {
+                        return parseFloat(a) + parseFloat(b);
+                    }, 0 );
+     
+                // Total over this page
+                pageTotal = api
+                    .column( 8, { page: 'current'} )
+                    .data()
+                    .reduce( function (a, b) {
+                        return parseFloat(a) + parseFloat(b);
+                    }, 0 );
+     
+                // Update footer
+                $( api.column( 8 ).footer() ).html(
+                    pageTotal +'Horas ( '+ total +' Horas)'
+                );
+            },
+            initComplete: function () {
+                if (window.location.href.toString().split(window.location.host)[1] == '/tarefas/?all=true'){
+                    $("#taskslist").dataTable().fnReloadAjax("{% url 'getTasks'%}?all=true");
+                };
+                this.api().columns().every( function () {
+                    var column = this;
+                    var select = $('<select style="width:100%;"><option value=""></option></select>')
+                        .appendTo( $(column.footer()).empty() )
+                        .on( 'change', function () {
+                            var val = $.fn.dataTable.util.escapeRegex(
+                                $(this).val()
+                            );
+     
+                            column
+                                .search( val ? '^'+val+'$' : '', true, false )
+                                .draw();
+                        } );
+     
+                    column.data().unique().sort().each( function ( d, j ) {
+                        select.append( '<option value="'+d+'">'+d+'</option>' )
+                    } );
+                } );
+            },
+            dom: 'Bfrtip',
+                lengthMenu: [
+                    [ 10, 50, 100, 200, -1 ],
+                    [ '10 linhas','50 linhas','100 linhas','200 linhas','Mostrar Tudo' ]
+                ],
+                buttons: [
+                    {
+                        extend:'pageLength'
+                    },
+                    {
+                        extend: 'excelHtml5',
+                        exportOptions: {
+                            columns: ':visible'
+                        }
+                    },
+                    {
+                        extend: 'pdfHtml5',
+                        header: true,
+                        footer: false,
+                        title: 'Lista de Tarefas',
+                        download: 'open',
+                        customize: function ( doc ) {
+                            // Splice the image in after the header, but before the table
+                            doc.content.splice( 0, 0, {
+                            margin: [ 0, 0, 0, 12 ],
+                            alignment: 'left',
+                            width: 150,
+                            image: 'data:image/png;base64,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'
+                            } );
+                        // Data URL generated by http://dataurl.net/#dataurlmaker
+                        },
+                        exportOptions: {
+                            columns: [ 1, 2, 3, 4, 5, 6, 7, 8],
+                        }
+                    }
+                ]
+        });
+        $('#taskslist').on('draw.dt', function () {
+            $('[data-toggle="tooltip"]').tooltip();
+        });
+    });
+</script>
+
+{% endblock %}

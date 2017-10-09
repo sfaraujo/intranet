@@ -1,0 +1,431 @@
+{% extends "index.html" %}
+{% load static %}
+{% load humanize %}
+{% load extra_tags %}
+{% block content %}
+{% include "page_menu.html" %}
+
+<div class="row">
+          <div class="x_panel">
+    <div class="col-md-12 table-responsive">
+        <h4>Necessidades da Cultura <small>por Hectare</small> </h4>
+        
+        <table id='cultureNeed' class="table table-condensed table-hover">
+            <thead>
+                <tr>
+                    <th class="edit">Editar </th>
+                    <th>Nome do Período </th>
+                    <th class="quantity">Azoto Amoniacal (NO3)</th>
+                    <th class="quantity">Azoto Nítrico (NH4)</th>
+                    <th class="quantity">Fósforo (P)</th>
+                    <th class="quantity">Potássio (K)</th>
+                    <th class="quantity">Cálcio (Ca)</th>
+                    <th class="quantity">Magnésio (Mg)</th>
+                    <th class="quantity">Enxofre (SsO4)</th>
+                    <th class="quantity">Boro (b)</th>
+                    <th class="quantity">Cobre (cu)</th>
+                    <th class="quantity">Ferro (f)</th>
+                    <th class="quantity">Manganês (mn)</th>
+                    <th class="quantity">Molibdeno (mo)</th>
+                    <th class="quantity">Zinco (zn)</th>
+                </tr>
+            </thead>
+            <tfoot>
+                <tr class="info">
+                    <th>TOTAL </th>
+                    <th></th>
+                    <th></th>
+                    <th></th>
+                    <th></th>
+                    <th></th>
+                    <th></th>
+                    <th></th>
+                    <th></th>
+                    <th></th>
+                    <th></th>
+                    <th></th>
+                    <th></th>
+                    <th></th>
+                    <th></th>
+                </tr>
+            </tfoot>
+        </table>
+    </div>
+    <div class="col-md-12 table-responsive">
+        <h4>Necessidades para  {{culture.area}} m2</h4>
+        <table id='fieldNeed' class="table table-condensed table-hover">
+            <thead>
+                <tr>
+                    <th class="openmodal">Nome do Período </th>
+                    <th class="quantity">Azoto Amoniacal (NO3)</th>
+                    <th class="quantity">Azoto Nítrico (NH4)</th>
+                    <th class="quantity">Fósforo (P)</th>
+                    <th class="quantity">Potássio (K)</th>
+                    <th class="quantity">Cálcio (Ca)</th>
+                    <th class="quantity">Magnésio (Mg)</th>
+                    <th class="quantity">Enxofre (SsO4)</th>
+                    <th class="quantity">Boro (b)</th>
+                    <th class="quantity">Cobre (cu)</th>
+                    <th class="quantity">Ferro (f)</th>
+                    <th class="quantity">Manganês (mn)</th>
+                    <th class="quantity">Molibdeno (mo)</th>
+                    <th class="quantity">Zinco (zn)</th>
+                </tr>
+            </thead>
+            <tfoot>
+                <tr class="info">
+                    <th>TOTAL </th>
+                    <th></th>
+                    <th></th>
+                    <th></th>
+                    <th></th>
+                    <th></th>
+                    <th></th>
+                    <th></th>
+                    <th></th>
+                    <th></th>
+                    <th></th>
+                    <th></th>
+                    <th></th>
+                    <th></th>
+                </tr>
+            </tfoot>
+        </table>
+    </div>
+    <div class="col-md-12 table-responsive">
+        <h4>Quantidades estimadas</h4>
+        <table id='estimateQty' class="table table-condensed table-hover">
+            <thead>
+                <tr>
+                    <th>Nome do Período </th>
+                    <th class="quantity">Azoto Amoniacal (NO3)</th>
+                    <th class="quantity">Azoto Nítrico (NH4)</th>
+                    <th class="quantity">Fósforo (P)</th>
+                    <th class="quantity">Potássio (K)</th>
+                    <th class="quantity">Cálcio (Ca)</th>
+                    <th class="quantity">Magnésio (Mg)</th>
+                    <th class="quantity">Enxofre (SsO4)</th>
+                    <th class="quantity">Boro (b)</th>
+                    <th class="quantity">Cobre (cu)</th>
+                    <th class="quantity">Ferro (f)</th>
+                    <th class="quantity">Manganês (mn)</th>
+                    <th class="quantity">Molibdeno (mo)</th>
+                    <th class="quantity">Zinco (zn)</th>
+                    <th class="currency">Custo €</th>
+                </tr>
+            </thead>
+            <tfoot>
+                <tr class="info">
+                    <th>TOTAL </th>
+                    <th></th>
+                    <th></th>
+                    <th></th>
+                    <th></th>
+                    <th></th>
+                    <th></th>
+                    <th></th>
+                    <th></th>
+                    <th></th>
+                    <th></th>
+                    <th></th>
+                    <th></th>
+                    <th></th>
+                    <th></th>
+                </tr>
+            </tfoot>
+        </table>
+    </div>
+    </div>
+</div>
+{%for period in periods%}
+<div class="modal fade cultureNeed-{{ forloop.counter }}-modal" tabindex="-1" role="dialog" aria-hidden="true" style="display: none;">
+    <div class="modal-dialog modal-lg">
+        <div class="modal-content">
+            <div class="modal-header">
+              <button type="button" class="close" data-dismiss="modal"><span aria-hidden="true">×</span>
+              </button>
+              <h4 class="modal-title" id="myModalLabel">Necessidades da Cultura de {{culture.name}}</h4>
+            </div>
+            <div class="modal-body">
+              <h4>{{period.period_name}}</h4>
+              <form method="post" id="setCultureNeedForm{{period.pk}}-{{ forloop.counter }}" class="form-horizontal form-label-left">
+                  {% csrf_token %}
+                  <div class="form-group">
+                    <label class="control-label col-md-2 col-sm-2 col-xs-12">Azoto (N)</label>
+                    <div class="col-md-5 col-sm-4 col-xs-12">
+                      <input type="text" name="nno3" class="form-control" value="{% with period|getCultureNeedByPeriod as cultureNeed %}{{cultureNeed.nno3}}{%endwith%}" placeholder="Azoto Amoniacal - NO3">
+                    </div>
+                    <div class="col-md-5 col-sm-4 col-xs-12">
+                      <input type="text" name="nnh4" value="{% with period|getCultureNeedByPeriod as cultureNeed %}{{cultureNeed.nnh4}}{%endwith%}" class="form-control" placeholder="Azoto Nítrico - NH4">
+                    </div>
+                  </div>
+                  <div class="form-group">
+                    <label class="control-label col-md-2 col-sm-2 col-xs-12">Fósforo (P)</label>
+                    <div class="col-md-5 col-sm-4 col-xs-12">
+                      <input type="text" name="p" value="{% with period|getCultureNeedByPeriod as cultureNeed %}{{cultureNeed.p}}{%endwith%}" class="form-control" placeholder="P">
+                    </div>
+                  </div>
+                  <div class="form-group">
+                    <label class="control-label col-md-2 col-sm-2 col-xs-12">Potássio (K)</label>
+                    <div class="col-md-5 col-sm-4 col-xs-12">
+                      <input type="text" name="k" value="{% with period|getCultureNeedByPeriod as cultureNeed %}{{cultureNeed.k}}{%endwith%}" class="form-control" placeholder="K">
+                    </div>
+                  </div>
+                  <div class="ln_solid"></div>
+                  <div class="form-group">
+                    <label class="control-label col-md-2 col-sm-2 col-xs-12">Cálcio (Ca)</label>
+                    <div class="col-md-5 col-sm-4 col-xs-12">
+                      <input type="text" name="ca" value="{% with period|getCultureNeedByPeriod as cultureNeed %}{{cultureNeed.ca}}{%endwith%}" class="form-control" placeholder="Ca">
+                    </div>
+                  </div>
+                  <div class="form-group">
+                    <label class="control-label col-md-2 col-sm-2 col-xs-12">Magnésio (Mg)</label>
+                    <div class="col-md-5 col-sm-4 col-xs-12">
+                      <input type="text" name="mg" value="{% with period|getCultureNeedByPeriod as cultureNeed %}{{cultureNeed.mg}}{%endwith%}" class="form-control" placeholder="Mg">
+                    </div>
+                  </div>
+                  <div class="form-group">
+                    <label class="control-label col-md-2 col-sm-2 col-xs-12">Enxofre (SsO4)</label>
+                    <div class="col-md-5 col-sm-4 col-xs-12">
+                      <input type="text" name="sso4" value="{% with period|getCultureNeedByPeriod as cultureNeed %}{{cultureNeed.sso4}}{%endwith%}" class="form-control" placeholder="SsO4">
+                    </div>
+                  </div>
+                  <div class="ln_solid"></div>
+                  <div class="form-group">
+                    <label class="control-label col-md-2 col-sm-2 col-xs-12">Boro (B)</label>
+                    <div class="col-md-2 col-sm-2 col-xs-12">
+                      <input type="text" name="b" value="{% with period|getCultureNeedByPeriod as cultureNeed %}{{cultureNeed.b}}{%endwith%}" class="form-control" placeholder="B">
+                    </div>
+                    <label class="control-label col-md-2 col-sm-2 col-xs-12">Cobre (Cu)</label>
+                    <div class="col-md-2 col-sm-2 col-xs-12">
+                      <input type="text" name="cu" value="{% with period|getCultureNeedByPeriod as cultureNeed %}{{cultureNeed.cu}}{%endwith%}" class="form-control" placeholder="Cu">
+                    </div>
+                    <label class="control-label col-md-2 col-sm-2 col-xs-12">Ferro (Fe)</label>
+                    <div class="col-md-2 col-sm-2 col-xs-12">
+                      <input type="text" name="fe" value="{% with period|getCultureNeedByPeriod as cultureNeed %}{{cultureNeed.fe}}{%endwith%}" class="form-control" placeholder="Fe">
+                    </div>
+                  </div>
+                <div class="form-group">
+                    <label class="control-label col-md-2 col-sm-2 col-xs-12">Manganês (Mn)</label>
+                    <div class="col-md-2 col-sm-2 col-xs-12">
+                      <input type="text" name="mn" value="{% with period|getCultureNeedByPeriod as cultureNeed %}{{cultureNeed.mn}}{%endwith%}" class="form-control" placeholder="Mn">
+                    </div>
+                    <label class="control-label col-md-2 col-sm-2 col-xs-12">Molibdeno (Mo)</label>
+                    <div class="col-md-2 col-sm-2 col-xs-12">
+                      <input type="text" name="mo" value="{% with period|getCultureNeedByPeriod as cultureNeed %}{{cultureNeed.mo}}{%endwith%}" class="form-control" placeholder="Mo">
+                    </div>
+                    <label class="control-label col-md-2 col-sm-2 col-xs-12">Zinco (Zn)</label>
+                    <div class="col-md-2 col-sm-2 col-xs-12">
+                      <input type="text" name="zn" value="{% with period|getCultureNeedByPeriod as cultureNeed %}{{cultureNeed.zn}}{%endwith%}" class="form-control" placeholder="Zn">
+                    </div>
+                  </div>
+            </form>
+            </div>
+            <div class="modal-footer">
+              <button type="button" class="btn btn-default" data-dismiss="modal">Fechar</button>
+              <button type="button" id="setCultureNeed{{period.pk}}-{{ forloop.counter }}" class="btn btn-primary">Guardar</button>
+            </div>
+        </div>
+    </div>
+</div>
+<script>
+                $("#setCultureNeed{{period.pk}}-{{ forloop.counter }}").click(function() {
+                    var period_id = {{period.pk}};
+                    $.ajax({
+                        type: "POST",
+                        url: "{% url 'setCultureNeed' period_id=period.pk %}",
+                        data: $('#setCultureNeedForm{{period.pk}}-{{ forloop.counter }}').serialize(),
+                        beforeSend:function(){
+                            $( "#setCultureNeed{{period.pk}}-{{ forloop.counter }}" ).html('<i class="fa fa-spinner fa-spin fa-fw"></i> Aguarde');
+                        },
+                        success: function(response){
+                            location.reload();
+                        }
+                    });
+                    return false;
+                });
+            </script>
+            
+{%endfor%}
+        
+       {% block page_scripts %}
+      
+            
+    <script type="text/javascript" language="javascript" class="init">
+        $(document).ready(function (){
+            $('#cultureNeed').DataTable( {
+                "paging": false,
+                "searching": false,
+                "retrieve": true,
+                "info": false,
+                "responsive": true,
+                 "ajax": {
+                     "url": "{% url 'getCultureNeed' culture_id=culture.pk year=year %}",
+                     "dataSrc": ""
+                 },
+                 "columns": [
+                     { "data": "fields.period"},
+                     { "data": "fields.period"},
+                     { "data": "fields.nno3"},
+                     { "data": "fields.nnh4"},
+                     { "data": "fields.p"},
+                     { "data": "fields.k"},
+                     { "data": "fields.ca"},
+                     { "data": "fields.mg"},
+                     { "data": "fields.sso4"},
+                     { "data": "fields.b"},
+                     { "data": "fields.cu"},
+                     { "data": "fields.fe"},
+                     { "data": "fields.mn"},
+                     { "data": "fields.mo"},
+                     { "data": "fields.zn"}
+                ],
+                "columnDefs": [ {
+                  "targets": 0,
+                  "render": function ( data, type, row, meta ) {
+                    var table = $('#cultureNeed').DataTable();
+                            return '<button type="button" class="btn btn-xs btn-primary" data-toggle="modal" data-target=".cultureNeed-'+(meta.row+1)+'-modal">Editar</button>';
+                },
+                } ],
+                'initComplete': function (settings, json){
+                this.api().columns('.quantity').every(function(){
+                    var column = this;
+                    var sum = column
+                        .data()
+                        .reduce(function (a, b) { 
+                           a = parseFloat(a, 10);
+                           if(isNaN(a)){ a = 0; }
+            
+                           b = parseFloat(b, 10);
+                           if(isNaN(b)){ b = 0; }
+            
+                           return (a + b).toFixed(2);
+                        });
+            
+                    $(column.footer()).html('<label style="font-size:100%" class="label label-default">'+ sum + ' Kg </label>');
+                });
+                this.api().rows().every(function(){
+                    //console.log( this.index()+1);
+                });
+                
+                
+            }
+            });
+            
+            $('#fieldNeed').dataTable( {
+                "paging": false,
+                "searching": false,
+                "retrieve": true,
+                "info": false,
+                "responsive": true,
+                 "ajax": {
+                     "url": "{% url 'getFieldNeed' culture_id=culture.pk year=year %}",
+                     "dataSrc": ""
+                 },
+                 "columns": [
+                     { "data": "fields.period" },
+                     { "data": "fields.nno3" },
+                     { "data": "fields.nnh4" },
+                     { "data": "fields.p" },
+                     { "data": "fields.k" },
+                     { "data": "fields.ca" },
+                     { "data": "fields.mg" },
+                     { "data": "fields.sso4" },
+                     { "data": "fields.b" },
+                     { "data": "fields.cu" },
+                     { "data": "fields.fe" },
+                     { "data": "fields.mn" },
+                     { "data": "fields.mo" },
+                     { "data": "fields.zn" }
+                ],
+                'initComplete': function (settings, json){
+                this.api().columns('.quantity').every(function(){
+                    var column = this;
+                    var sum = column
+                        .data()
+                        .reduce(function (a, b) { 
+                           a = parseFloat(a, 10);
+                           if(isNaN(a)){ a = 0; }
+            
+                           b = parseFloat(b, 10);
+                           if(isNaN(b)){ b = 0; }
+            
+                           return (a + b).toFixed(2);
+                        });
+            
+                    $(column.footer()).html('<label style="font-size:100%" class="label label-default">'+ sum + ' Kg </label>');
+                });
+            }
+            });
+            
+            $('#estimateQty').dataTable( {
+                "paging": false,
+                "searching": false,
+                "retrieve": true,
+                "info": false,
+                "responsive": true,
+                 "ajax": {
+                     "url": "{% url 'getEstimateQty' culture_id=culture.pk year=year %}",
+                     "dataSrc": ""
+                 },
+                 "columns": [
+                     { "data": "fields.period" },
+                     { "data": "fields.nno3" },
+                     { "data": "fields.nnh4" },
+                     { "data": "fields.p" },
+                     { "data": "fields.k" },
+                     { "data": "fields.ca" },
+                     { "data": "fields.mg" },
+                     { "data": "fields.sso4" },
+                     { "data": "fields.b" },
+                     { "data": "fields.cu" },
+                     { "data": "fields.fe" },
+                     { "data": "fields.mn" },
+                     { "data": "fields.mo" },
+                     { "data": "fields.zn" },
+                     { "data": "fields.total_price" }
+                ],
+                'initComplete': function (settings, json){
+                    this.api().columns('.quantity').every(function(){
+                        var column = this;
+                        var sum = column
+                            .data()
+                            .reduce(function (a, b) { 
+                               a = parseInt(a, 10);
+                               if(isNaN(a)){ a = 0; }
+                
+                               b = parseInt(b, 10);
+                               if(isNaN(b)){ b = 0; }
+                
+                               return (a + b).toFixed(2);
+                            });
+                
+                        $(column.footer()).html('<label style="font-size:100%" class="label label-default">'+ sum + ' Kg </label>');
+                    });
+                    this.api().columns('.currency').every(function(){
+                        var column = this;
+                        var sum = column
+                            .data()
+                            .reduce(function (a, b) { 
+                               a = parseFloat(a, 10);
+                               if(isNaN(a)){ a = 0; }
+                
+                               b = parseFloat(b, 10);
+                               if(isNaN(b)){ b = 0; }
+                
+                               return (a + b).toFixed(2);
+                            });
+                        $(column.footer()).html(sum + ' €');
+                        
+                    });
+                }
+
+            });
+
+
+});
+    </script>
+    {% endblock %}
+
+{% endblock %}
+

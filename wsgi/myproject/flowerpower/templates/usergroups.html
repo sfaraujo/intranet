@@ -1,0 +1,73 @@
+{% extends "index.html" %}
+{% load static %}
+{% load humanize %}
+{% block content %}
+<div class="page-title">
+        <div class="title_right">
+            <h3>Configuração de Sensores</h3>
+        </div>
+    </div>
+    <div class="clearfix"></div>
+    <div class="row">
+        <table class="table">
+          <thead>
+            <tr>
+              <th>#</th>
+              <th>Nome do grupo</th>
+              <!--<th>Utilizadores</th>-->
+              <th>Ações</th>
+            </tr>
+          </thead>
+          <tbody>
+              {%for group in groups%}
+            <tr>
+              <th scope="row">{{group.pk}}</th>
+              <td>{{group.name}}</td>
+              <!--<td>{%for i in group.user_set.all %}<span class="label label-primary"> {{ i }} </span>&nbsp;&nbsp;{% endfor %}</td>-->
+              <td></td>
+            </tr>
+            {%endfor%}
+          </tbody>
+        </table>
+    </div>
+    <div class="row">
+        <h4>Adicionar grupo</h4>
+        <form class="form-inline">
+                  <div class="form-group">
+                    <label for="ex3">Email address</label>
+                    <input type="text" id="ex3" class="form-control" placeholder=" ">
+                  </div>
+                  <div class="form-group">
+                    <label for="ex4">Email address</label>
+                    <input type="email" id="ex4" class="form-control" placeholder=" ">
+                  </div>
+                  <div class="checkbox">
+                    <label>
+                      <input type="checkbox"> Remember me
+                    </label>
+                  </div>
+                  <button type="submit" class="btn btn-default">Send invitation</button>
+                </form>
+    </div>
+ </div>
+{% endblock %}
+
+{% block page_scripts %}
+<script>
+    $('#submitButton1').click( function() {
+        $.ajax({
+            url: 'configsensors',
+            type: 'POST',
+            dataType: 'json',
+            data: $('#sensorForm1').serialize(),
+            beforeSend:function(){
+                $('.loaderImage').show();
+            },
+            success: function() {
+                     }
+        }).error(function(){
+            $('.loaderImage').html("<h1>ERRO</h1>");
+         });
+    });
+</script>
+        {% endblock %}

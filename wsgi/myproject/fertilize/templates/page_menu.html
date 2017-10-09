@@ -1,0 +1,59 @@
+{% load extra_tags %}
+<div class="row">
+      <div class="x_panel">
+        <div class="x_title">
+          <h2>{{culture.name}} <i class="fa fa-angle-double-right"></i> {{year}} <i class="fa fa-angle-double-right"></i> {{period.period_name}}</h2>
+          <div class="clearfix"></div>
+        </div>
+        <div class="x_content">
+          <ul class="nav nav-pills pull-left" role="tablist">
+            
+            <li role="presentation" class="dropdown">
+              <a id="drop4" href="#" class="dropdown-toggle" data-toggle="dropdown" aria-haspopup="true" role="button" aria-expanded="false">
+                          Plano Anual - {{year}}
+                          <span class="caret"></span>
+                      </a>
+              <ul id="menu6" class="dropdown-menu animated fadeInDown" role="menu">
+                  {%with culture|getYearsByCulture as years%}
+                    {%for year in years %}
+                    <li role="presentation"><a role="menuitem" tabindex="-1" href="{% url 'fertilization' culture_id=culture.pk year=year %}">{{year}}</a></li>
+                    {% endfor %}
+                  {%endwith%}
+              </ul>
+            </li>
+            <li role="presentation" class="dropdown">
+              <a id="drop5" href="#" class="dropdown-toggle" data-toggle="dropdown" aria-haspopup="true" role="button" aria-expanded="false">
+                          Periodos
+                          <span class="caret"></span>
+                      </a>
+              <ul id="menu2" class="dropdown-menu animated fadeInDown" role="menu" aria-labelledby="drop5">
+                {%for period in culture|getPeriodsByYear:year %}
+                    <li role="presentation"><a role="menuitem" tabindex="-1" href="{% url 'period' culture_id=culture.pk period_id=period.pk year=year %}">{{period.period_name}} | {{period.start_date|date:'d F'}} - {{period.end_date|date:'d F'}}</a>
+                {% endfor %}
+              </ul>
+            </li>
+                {%if period %}
+                <li role="presentation"><a href="{% url 'calendar' culture_id=culture.pk period_id=period.pk year=year %}">Agenda</a>
+                {%endif%}
+            </li>
+          </ul>
+          
+          <ul class="nav nav-pills pull-right" role="tablist">
+            
+            <li role="presentation" class="dropdown">
+              <a id="drop4" href="#" class="dropdown-toggle" data-toggle="dropdown" aria-haspopup="true" role="button" aria-expanded="false">
+                          Mapa de Fertilizações - {{culture}} | {{year}}
+                          <span class="caret"></span>
+                      </a>
+              <ul id="menu6" class="dropdown-menu animated fadeInDown" role="menu">
+                  {%with culture|getYearsByCulture as years%}
+                    {%for year in years %}
+                    <li role="presentation"><a role="menuitem" tabindex="-1" href="{% url 'allFertilizations' culture_id=culture.pk year=year %}">{{year}}</a></li>
+                    {% endfor %}
+                  {%endwith%}
+              </ul>
+            </li>
+          </ul>
+        </div>
+      </div>
+    </div>

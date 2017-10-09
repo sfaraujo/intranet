@@ -1,0 +1,107 @@
+{% extends "index.html" %}
+{% load static %}
+{% load humanize %}
+{% block content %}
+<div class="page-title">
+        <div class="title_right">
+            <h3>Configuração de Sensores</small></h3>
+        </div>
+    </div>
+    <div class="clearfix"></div>
+    <div class="row">
+        <p>Para aceder aos seus sensores, primeiro configure os dados de acesso da sua conta Parrot. <a class="btn btn-primary" href="{% url 'parrotAccount' %}">Configurar</a></p>
+        {%for sensor_to_config in sensors_to_config%}
+        <div class="col-md-6 col-sm-6 col-xs-12">
+            <div id="loaderImage{{ forloop.counter }}" style="text-align:center; width:100%; height:100%; position:absolute; z-index:100; background:rgba(255, 255, 255, 1); display:none">
+                <img src="{% static "images/spinner.gif" %}"/>
+                <h2>Aguarde...</h2>
+            </div>
+            <div class="x_panel">
+                <div class="x_title">
+                    <h2>{{sensor_to_config.plant_nickname}}</h2>
+                    <div class="clearfix"></div>
+                </div>
+                <div class="x_content">
+                    <img class="img-thumbnail img-responsive" style="width: 100%; height: 250px" src="{{sensor_to_config.avatar_url}}"/>
+                    <div class="x_content">
+                    <form id="sensorform{{ forloop.counter }}" method="post" class="form-horizontal form-label-left">
+                    {% csrf_token %}
+                      <div class="form-group">
+                        <label class="control-label col-md-3 col-sm-3 col-xs-12">Número de Série</label>
+                        <div class="col-md-9 col-sm-9 col-xs-12">
+                          <input type="text" name="sensor_serial" class="form-control" value="{{sensor_to_config.sensor.sensor_serial}}" readonly="readonly" placeholder="{{sensor_to_config.sensor.sensor_serial}}">
+                        </div>
+                      </div>
+                      <div class="form-group">
+                        <label class="control-label col-md-3 col-sm-3 col-xs-12">Nome do sensor</label>
+                        <div class="col-md-9 col-sm-9 col-xs-12">
+                          <input type="text" name="nickname" class="form-control" value="{{sensor_to_config.sensor.sensor_identifier}}" readonly="readonly" placeholder="{{sensor_to_config.sensor.sensor_identifier}}">
+                        </div>
+                      </div>
+                      <div class="form-group">
+                        <label class="control-label col-md-3 col-sm-3 col-xs-12">Longitude</label>
+                        <div class="col-md-9 col-sm-9 col-xs-12">
+                          <input type="text" name="longitude" class="form-control" value="{{sensor_to_config.longitude}}" readonly="readonly" placeholder="{{sensor_to_config.longitude}}">
+                        </div>
+                      </div>
+                      <div class="form-group">
+                        <label class="control-label col-md-3 col-sm-3 col-xs-12">Latitude</label>
+                        <div class="col-md-9 col-sm-9 col-xs-12">
+                          <input type="text" name="latitude" class="form-control" value="{{sensor_to_config.latitude}}" readonly="readonly" placeholder="{{sensor_to_config.latitude}}">
+                        </div>
+                      </div>
+                      
+                      <div class="form-group">
+                        <label class="control-label col-md-3 col-sm-3 col-xs-12">Nome da planta</label>
+                        <div class="col-md-9 col-sm-9 col-xs-12">
+                          <input type="text" name="plantnickname" readonly="readonly" class="form-control" value="{{sensor_to_config.plant_nickname}}" placeholder="{{sensor_to_config.plant_nickname}}">
+                        </div>
+                      </div>
+                      <div class="form-group">
+                        <label class="control-label col-md-3 col-sm-3 col-xs-12">Atribuir Grupo</label>
+                        <div class="col-md-9 col-sm-9 col-xs-12">
+                          <select name="group" class="form-control">
+                            {%for group in groups%}
+                                <option {%if sensor_to_config.pk == group.pk %} selected="selected"{%endif%} value="{{group.pk}}">{{group.name}}</option>
+                            {%endfor%}
+                          </select>
+                        </div>
+                      </div>
+
+                      <div class="ln_solid"></div>
+                      <div class="form-group">
+                        <div class="col-md-9 col-sm-9 col-xs-12 col-md-offset-3">
+                          <button type="submit" class="btn btn-primary">Cancelar</button>
+                          <button id="submitButton{{ forloop.counter }}" type="submit" class="btn btn-success pull-right">Gravar</button>
+                        </div>
+                      </div>
+                    </form>
+                    </div>
+                    
+                </div>
+            </div>
+        </div>
+            <script>
+                $('#submitButton{{ forloop.counter }}').click( function() {
+                    $.ajax({
+                        url: '{% url "configSensors" %}',
+                        type: 'POST',
+                        //dataType: 'json',
+                        data: $('#sensorform{{ forloop.counter }}').serialize(),
+                        beforeSend:function(){
+                            $('#loaderImage{{ forloop.counter }}').show();
+                        },
+                        success: function(data) {
+                            $('#loaderImage{{ forloop.counter }}').show();
+                            $('#loaderImage{{ forloop.counter }}').html("<img width=100px src=\"{% static 'images/green_arrow_up.png' %}\"/><h1>Guardado com sucesso</h1>");
+                             setTimeout(function(){$('#loaderImage{{ forloop.counter }}').hide();}, 5000);
+                             location.reload();
+                        }
+                    });
+                });
+            </script>
+        {%endfor%}
+    </div>
+ </div>
+{% endblock %}
+

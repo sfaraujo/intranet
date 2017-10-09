@@ -1,0 +1,14 @@
+#!/bin/bash
+echo "$(date +%A-%H:%M)"
+if [ $(date +%H:%M) == "05:30" ]
+then
+    export DJANGO_SETTINGS_MODULE=myproject.settings
+    /var/lib/openshift/57e9384a7628e1d1a7000132/app-root/runtime/repo/wsgi/myproject/manage.py importevap
+    echo 'import OK'
+fi
+if [ $(date +%A-%H:%M) == "Friday-04:00" ]
+then
+export DJANGO_SETTINGS_MODULE=myproject.settings
+/var/lib/openshift/57e9384a7628e1d1a7000132/app-root/runtime/repo/wsgi/myproject/manage.py sendTasksByMail
+echo 'send email OK'
+fi

@@ -1,0 +1,210 @@
+{% extends "index.html" %}
+{% load static %}
+{% load humanize %}
+{% load extra_tags %}
+{% block content %}
+<div class="page-title">
+        <div class="title_right">
+            <h1>Culturas e Períodos</h1>
+        </div>
+    </div>
+    <div class="clearfix"></div>
+    <div class="row">
+        {%for culture in cultures%}
+        <button id="delete_button-culture-{{ forloop.counter }}" class="pull-right btn btn-primary"><i class="fa fa-trash"></i> Apagar Cultura</button>
+        <h3>{{culture.name}}</h3>
+        <div class="clearfix"></div>
+        
+        
+        {%with culture|getYearsByCulture as years%}
+        <div class="" role="tabpanel" data-example-id="togglable-tabs">
+          <ul id="myTab{{ culture.pk }}" class="nav nav-tabs bar_tabs right" role="tablist">
+              {%for year in years %}
+            <li role="presentation" {%if forloop.first %}class="active"{%endif%}><a href="#tab_content{{ culture.pk }}-{{year}}" id="{{year}}-tabb" role="tab" data-toggle="tab" aria-controls="{{year}}" aria-expanded="true">{{year}}</a>
+            </li>
+            {%endfor%}
+          </ul>
+          <div id="myTabContent{{ culture.pk }}" class="tab-content">
+              {%for year in years %}
+            <div role="tabpanel" class="tab-pane fade {%if forloop.first %}active in{%endif%}" id="tab_content{{ culture.pk }}-{{year}}" aria-labelledby="{{year}}-tab">
+              <table class="table">
+                  <thead>
+                    <tr>
+                      <th>Nome da Cultura</th>
+                      <th>Datas</th>
+                      <th>Duração</th>
+                      <th>Ações</th>
+                    </tr>
+                  </thead>
+                  <tbody>
+                    {%for period in culture|getPeriodsByYear:year %}
+                    
+                    <form id="updatePeriodForm-{{period.pk}}" method="post" class="form-inline">
+                        {% csrf_token %}
+                        <input type="hidden" name="pk" value="{{period.pk}}">
+                    <tr>
+                        <td>
+                            <div class="form-group">
+                                <input type="text" name="period_name" value="{{period.period_name}}" class="form-control" placeholder=" ">
+                            </div>
+                        </td>
+                        <td>
+                            <div class="form-group">
+                                <input type="text" style="width: 200px" name="periodDates" id="periodDates-{{period.pk}}" class="form-control active" value="{{period.start_date|date:'d/m/Y'}} - {{period.end_date|date:'d/m/Y'}}">
+                                <input type="hidden" id="startDate-{{period.pk}}" name="start_date" value="{{period.start_date|date:'Y-m-d'}}" class="form-control" placeholder=" ">
+                                <input type="hidden" id="endDate-{{period.pk}}" name="end_date" value="{{period.end_date|date:'Y-m-d'}}" class="form-control" placeholder=" ">
+                              </div>
+                              <!--<label class="label label-success">{{period.start_date|date:'d M Y'}}</label>
+                              <label class="label label-danger">{{period.end_date|date:'d M Y'}}</label>--></td>
+                        <td>
+                            <label style="font-size:100%;" class="label label-primary">{{period.days}}</label></td>
+                        <td><button id="update_button-period-{{period.pk}}" class="btn btn-info btn-xs"><i class="fa fa-refresh"></i> Atualizar</button><button id="delete_button-period-{{period.pk}}" class="btn btn-danger btn-xs"><i class="fa fa-trash"></i> Apagar</button></td>
+                    </tr>
+                    </form>
+                    <script>
+                        $("#update_button-period-{{period.pk}}").click(function() {
+                            var id = {{culture.pk}};
+                            $.ajax({
+                                type: "POST",
+                                url: "{% url 'updatePeriod' culture_id=culture.pk %}",
+                                data: $('#updatePeriodForm-{{period.pk}}').serialize(),
+                                success: function(response){
+                                    location.reload();
+                                }
+                            });
+                            return false;
+                        });
+                    </script>
+                    <script>
+                        $("#delete_button-period-{{period.pk}}").click(function() {
+                            var id = {{period.pk}};
+                            $.ajax({
+                                type: "POST",
+                                url: "{% url 'perioddelete' id=period.pk %}",
+                                data: {
+                                    'id': id,
+                                    'csrfmiddlewaretoken': '{{ csrf_token }}',
+                                },
+                                success: function(response){
+                                    location.reload();
+                                }
+                            });
+                            return false;
+                        });
+                    </script>
+                    <script>
+                          $(document).ready(function() {
+                            $('#periodDates-{{period.pk}}').daterangepicker(null, function(start, end, label) {
+                              $('#startDate-{{period.pk}}').val(moment(start).format("YYYY-MM-DD"));
+                              $('#endDate-{{period.pk}}').val(moment(end).format("YYYY-MM-DD"));
+                            });
+                          });
+                        </script>
+                    {%endfor%}
+                    
+                    
+                  </tbody>
+                </table>
+            </div>
+            {%endfor%}
+          </div>
+        </div>
+        {%endwith%}
+        <table class="table">
+                  <tbody>
+        <form id="newPeriodForm-{{culture.pk}}" method="post" class="form-inline">
+                    <tr>
+                        <td>
+                            
+                              <div class="form-group">
+                                <label for="name">Nome do Período</label>
+                                <input type="text" name="period_name" class="form-control" placeholder=" ">
+                              </div>
+                        </td>
+                        <td>
+                              <div class="form-group">
+                                <label for="area">Datas</label>
+                                <input type="text" style="width: 200px" name="periodDates" id="newPeriodDates-{{culture.pk}}" class="form-control active" value="">
+                                <input type="hidden" id="newStartDate-{{culture.pk}}" name="start_date" value="" class="form-control" placeholder=" ">
+                                <input type="hidden" id="newEndDate-{{culture.pk}}" name="end_date" value="" class="form-control" placeholder=" ">
+                              </div>
+                        </td>
+                        <td colspan="2">
+                              <input type="hidden" name="culture" class="form-control" placeholder=" ">
+                              <button id="submitPeriodButton-{{culture.pk}}" type="submit" class="btn btn-default">Guardar</button>
+                        </td>
+                    </tr>
+                     </form>
+                            
+                        <script>
+                        $("#submitPeriodButton-{{culture.pk}}").click(function() {
+                            var id = {{culture.pk}};
+                            $.ajax({
+                                type: "POST",
+                                url: "{% url 'newPeriod' culture_id=culture.pk %}",
+                                data: $('#newPeriodForm-{{culture.pk}}').serialize(),
+                                success: function(response){
+                                    location.reload();
+                                }
+                            });
+                            return false;
+                        });
+                    </script>
+                    <script>
+                        $("#delete_button-culture-{{ forloop.counter }}").click(function() {
+                            var id = {{culture.pk}};
+                            $.ajax({
+                                type: "POST",
+                                url: "{% url 'culturedelete' id=culture.pk %}",
+                                data: {
+                                    'id': id,
+                                    'csrfmiddlewaretoken': '{{ csrf_token }}',
+                                },
+                                success: function(response){
+                                    location.reload();
+                                }
+                            });
+                            return false;
+                        });
+                    </script>
+                    <script>
+                          $(document).ready(function() {
+                            $('#newPeriodDates-{{culture.pk}}').daterangepicker(null, function(start, end, label) {
+                              $('#newStartDate-{{culture.pk}}').val(moment(start).format("YYYY-MM-DD"));
+                              $('#newEndDate-{{culture.pk}}').val(moment(end).format("YYYY-MM-DD"));
+                            });
+                          });
+                        </script>
+                  </tbody>
+        </table>
+                    
+    {%endfor%}
+    </div>
+    <div class="row">
+        <h4>Adicionar cultura</h4>
+        <form id="culturesForm" method="post" class="form-inline">
+          <div class="form-group">
+            <label for="name">Nome da Cultura</label>
+            <input type="text" name="name" class="form-control" placeholder=" ">
+          </div>
+          <div class="form-group">
+            <label for="area">Área (m2)</label>
+            <input type="text" name="area" class="form-control" placeholder=" ">
+          </div>
+          <div class="form-group">
+            <select name="group" class="form-control" tabindex="-1" aria-hidden="true">
+                <option></option>
+                {%for group in groups%}
+                    <option value="{{group.pk}}">{{group.name}}</option>
+                {%endfor%}
+            </select>
+          </div>
+          <button id="submitButton" type="submit" class="btn btn-default">Guardar</button>
+        </form>
+    </div>
+ </div>
+{% endblock %}
+
+{% block page_scripts %}
+
+        {% endblock %}
